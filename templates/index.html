@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>NoTitle</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <div id="loading-screen" class="loading-screen">
+            <div class="loader"></div>
+            <p>Загрузка...</p>
+        </div>
+
+        <div id="auth-overlay" class="auth-overlay hidden">
+            <div class="auth-card">
+                <h3 id="auth-title">Вход</h3>
+                <div id="auth-error" class="error-message hidden"></div>
+
+                <div class="input-group" id="login-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="auth-login" placeholder="Email или имя пользователя" autocomplete="off">
+                </div>
+
+                <div class="input-group hidden" id="email-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="auth-email" placeholder="Email" autocomplete="off">
+                </div>
+
+                <div class="input-group hidden" id="username-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="auth-username" placeholder="Имя пользователя" autocomplete="off">
+                </div>
+
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="auth-password" placeholder="Пароль">
+                </div>
+
+                <div class="input-group hidden" id="password-confirm-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="auth-password-confirm" placeholder="Повторите пароль">
+                </div>
+
+                <button id="auth-submit">Войти</button>
+                <button id="auth-toggle" class="secondary-button">Нет аккаунта? Зарегистрироваться</button>
+            </div>
+        </div>
+
+        <div id="main-interface" class="main-panel hidden">
+
+            <div class="chats-sidebar" id="chats-sidebar">
+                <div class="chats-header">
+                    <div class="chats-header-left">
+                        <button id="user-menu-button" class="user-menu-button">⋯</button>
+                        <div id="user-popup" class="user-popup hidden">
+                            <div class="popup-header">
+                                <div class="popup-username" id="popup-username"></div>
+                            </div>
+                            <div class="popup-divider"></div>
+                            <button id="popup-create-group" class="popup-item">
+                                <i class="fas fa-users"></i>
+                                <span>Создать группу</span>
+                            </button>
+                            <button id="popup-logout" class="popup-item logout">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Выйти</span>
+                            </button>
+                            <div class="popup-footer">
+                                <span class="popup-version">v1.0.0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chats-header-center">
+                        <input type="text" id="sidebar-user-search" placeholder=" Поиск" autocomplete="off">
+                        <div id="sidebar-search-results" class="search-results"></div>
+                    </div>
+                </div>
+
+                <div id="chats-list" class="chats-list"></div>
+            </div>
+
+            <div id="resizer" class="resizer"></div>
+
+            <div class="chat-area">
+                <div id="chat-header" class="chat-header hidden">
+                    <button id="back-to-chats" class="back-button">←</button>
+                    <span id="chat-partner-name" class="chat-partner-name"></span>
+                    <span id="online-status" class="online-status"></span>
+                    <div id="typing-indicator" class="typing-indicator hidden">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+
+                <div id="messages-container" class="messages-container hidden"></div>
+
+                <div id="chat-placeholder" class="chat-placeholder">Выберите чат</div>
+
+                <div id="input-area" class="input-area hidden">
+                    <input type="text" id="message-input" placeholder="Введите сообщение" autocomplete="off">
+                    <button id="send-btn">➤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/socket.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

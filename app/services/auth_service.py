@@ -1,0 +1,112 @@
+from typing import Optional, Dict
+from datetime import datetime, timedelta
+import secrets
+import re
+from werkzeug.security import generate_password_hash, check_password_hash
+from app.exceptions.auth_errors import (
+    InvalidCredentialsError,
+    UserNotFoundError,
+    EmailAlreadyExistsError,
+    UsernameAlreadyExistsError,
+    RateLimitExceededError,
+    ValidationError
+)
+from app.repositories.user_repository import UserRepository
+
+class AuthService:
+    def __init__(self, user_repo: UserRepository, redis_client, config, email_task):
+        self.user_repo = user_repo
+        self.redis = redis_client
+        self.config = config
+        self.email_task = email_task
+
+    def _check_rate_limit(self, key: str, max_attempts: int, period: int) -> bool:
+        current = self.redis.get(key)
+        if current and int(current) >= max_attempts:
+            raise RateLimitExceededError("Too many attempts")
+        pipe = self.redis.pipeline()
+        pipe.incr(key)
+        pipe.expire(key, period)
+        pipe.execute()
+        return False
+
+    def register(self, username: str, email: str, password: str) -> Dict:
+        # Валидация
+        if not username or not email or not password:
+            raise ValidationError("All fields are required")
+        if len(username) < 3 or len(username) > 20:
+            raise ValidationError("Username must be 3-20 characters")
+        if len(password) < 4:
+            raise ValidationError("Password must be at least 4 characters")
+        if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+            raise ValidationError("Invalid email")
+
+        if self.user_repo.get_by_username_ci(username):
+            raise UsernameAlreadyExistsError("Username already taken")
+        if self.user_repo.get_by_email_ci(email):
+            raise EmailAlreadyExistsError("Email already registered")
+
+        password_hash = generate_password_hash(password)
+        user = self.user_repo.create(username, email, password_hash)
+        # Сохраняем в БД (коммит)
+        self.user_repo.session.commit()
+
+        # Генерация токена и отправка письма
+        token = self._generate_confirmation_token(user)
+        self.email_task.send_confirmation(user.email, user.username, token)
+
+        return {"id": user.id, "username": user.username, "email": user.email}
+
+    def _generate_confirmation_token(self, user):
+        token = secrets.token_urlsafe(32)
+        user.confirmation_token = token
+        user.token_expiration = datetime.utcnow() + timedelta(seconds=self.config['CONFIRMATION_TOKEN_EXPIRATION'])
+        self.user_repo.session.commit()
+        return token
+
+    def login(self, login: str, password: str, ip: str = None) -> Dict:
+        ip_key = f"login_attempts_ip:{ip}" if ip else None
+        login_key = f"login_attempts_login:{login}"
+
+        if ip_key:
+            self._check_rate_limit(ip_key, self.config['LOGIN_RATE_LIMIT_ATTEMPTS'], self.config['LOGIN_RATE_LIMIT_PERIOD'])
+        self._check_rate_limit(login_key, self.config['LOGIN_RATE_LIMIT_ATTEMPTS'], self.config['LOGIN_RATE_LIMIT_PERIOD'])
+
+        user = self.user_repo.get_by_email_ci(login)
+        if not user:
+            user = self.user_repo.get_by_username_ci(login)
+
+        if not user or not check_password_hash(user.password_hash, password):
+            raise InvalidCredentialsError("Invalid login or password")
+
+        if ip_key:
+            self.redis.delete(ip_key)
+        self.redis.delete(login_key)
+
+        if not user.confirmed:
+            raise UserNotFoundError("Email not confirmed", not_confirmed=True, email=user.email)
+
+        return {"id": user.id, "username": user.username, "confirmed": user.confirmed}
+
+    def confirm_user(self, token: str) -> Dict:
+        user = self.user_repo.get_by_confirmation_token(token)
+        if not user:
+            raise UserNotFoundError("Invalid token")
+        if user.token_expiration < datetime.utcnow():
+            raise ValidationError("Token expired")
+        user.confirmed = True
+        user.confirmed_at = datetime.utcnow()
+        user.confirmation_token = None
+        user.token_expiration = None
+        self.user_repo.session.commit()
+        return {"id": user.id, "username": user.username}
+
+    def resend_confirmation(self, email: str) -> Dict:
+        user = self.user_repo.get_by_email_ci(email)
+        if not user:
+            raise UserNotFoundError("User not found")
+        if user.confirmed:
+            raise ValidationError("Email already confirmed")
+        token = self._generate_confirmation_token(user)
+        self.email_task.send_confirmation(user.email, user.username, token)
+        return {"message": "Confirmation email resent"}
