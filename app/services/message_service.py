@@ -20,6 +20,10 @@ class MessageService:
 
     def _check_user_in_chat(self, user_id: int, chat_id: str) -> bool:
         return self.chat_repo.user_in_chat(user_id, chat_id)
+    
+    def get_unread_counts(self, user_id: int) -> Dict[str, int]:
+        chat_ids = self.chat_repo.get_user_chat_ids(user_id)
+        return self.message_repo.count_unread_for_user(user_id, chat_ids)
 
     def send_message(self, user_id: int, chat_id: str, text: str) -> Dict:
         if not self._check_user_in_chat(user_id, chat_id):
@@ -57,7 +61,7 @@ class MessageService:
             'is_deleted': m.is_deleted,
             'edited': m.edited,
             'user_id': m.user_id
-        } for m in messages]
+        } for m in reversed(messages)]
 
     def mark_read(self, user_id: int, chat_id: str):
         if not self._check_user_in_chat(user_id, chat_id):

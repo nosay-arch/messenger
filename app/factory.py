@@ -35,7 +35,14 @@ def create_app(config_object=None):
         return db.session.get(User, int(user_id))
 
     # Настройка Redis
-    redis_client = redis.from_url(app.config['REDIS_URL'], decode_responses=True)
+    redis_client = redis.from_url(
+        app.config['REDIS_URL'],
+        decode_responses=True,
+        socket_connect_timeout=5,
+        socket_keepalive=True,
+        health_check_interval=30,
+        connection_pool_kwargs={'max_connections': 20}
+    )
     app.redis_client = redis_client
 
     # Создание контейнера зависимостей
@@ -47,7 +54,7 @@ def create_app(config_object=None):
     app.register_blueprint(controllers.pages_controller.bp)
 
     # Инициализация Socket.IO
-    socketio.init_app(app, cors_allowed_origins='*', message_queue=app.config['REDIS_URL'])
+    socketio.init_app(app, cors_allowed_origins=app.config['CORS_ORIGINS'], message_queue=app.config['REDIS_URL'])
     register_socket_handlers(socketio, app.container)
 
     # Создание таблиц БД (для разработки)

@@ -17,7 +17,12 @@ def register_messaging_handlers(socketio, container):
         if check_rate_limit(current_user.username, 'join_chat', redis_client):
             emit('error', {'message': 'Too many requests'})
             return
-        chat_id = data.get('chat_id')
+        
+        chat_id = data.get('chat_id', '').strip()
+        if not chat_id:
+            emit('error', {'message': 'Invalid chat_id'})
+            return
+            
         chat_service = container.chat_service
         try:
             if not chat_repo.user_in_chat(current_user.id, chat_id):
@@ -41,8 +46,14 @@ def register_messaging_handlers(socketio, container):
         if check_rate_limit(current_user.username, 'new_message', redis_client):
             emit('error', {'message': 'Rate limit'})
             return
-        chat_id = data.get('chat_id')
+        
+        chat_id = data.get('chat_id', '').strip()
         text = data.get('text', '').strip()
+        
+        if not chat_id or not text:
+            emit('error', {'message': 'Invalid chat_id or text'})
+            return
+            
         chat_service = container.chat_service
         try:
             msg_dto = message_service.send_message(current_user.id, chat_id, text)
@@ -62,7 +73,11 @@ def register_messaging_handlers(socketio, container):
     def handle_typing(data):
         if check_rate_limit(current_user.username, 'typing', redis_client):
             return
-        chat_id = data.get('chat_id')
+        
+        chat_id = data.get('chat_id', '').strip()
+        if not chat_id:
+            return
+            
         is_typing = data.get('typing', False)
         try:
             if not chat_repo.user_in_chat(current_user.id, chat_id):
@@ -79,7 +94,11 @@ def register_messaging_handlers(socketio, container):
     def handle_mark_read(data):
         if check_rate_limit(current_user.username, 'mark_read', redis_client):
             return
-        chat_id = data.get('chat_id')
+        
+        chat_id = data.get('chat_id', '').strip()
+        if not chat_id:
+            return
+            
         try:
             message_service.mark_read(current_user.id, chat_id)
             counts = message_service.get_unread_counts(current_user.id)

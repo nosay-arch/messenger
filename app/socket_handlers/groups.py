@@ -16,7 +16,12 @@ def register_groups_handlers(socketio, container):
         if check_rate_limit(current_user.username, 'create_private_chat', redis_client):
             emit('error', {'message': 'Rate limit'})
             return
+        
         other_username = data.get('username', '').strip()
+        if not other_username:
+            emit('error', {'message': 'Invalid username'})
+            return
+            
         try:
             chat_info, other_dto = group_service.create_private_chat(current_user.id, other_username)
             emit('chat_created', chat_info)
@@ -36,7 +41,12 @@ def register_groups_handlers(socketio, container):
         if check_rate_limit(current_user.username, 'create_private_chat', redis_client):
             emit('error', {'message': 'Rate limit'})
             return
+        
         name = data.get('name', '').strip()
+        if not name:
+            emit('error', {'message': 'Invalid group name'})
+            return
+            
         description = data.get('description', '').strip()
         member_ids = data.get('member_ids', [])
         chat_service = container.chat_service
@@ -45,7 +55,6 @@ def register_groups_handlers(socketio, container):
             emit('group_created', chat_info)
             emit('unread_counts', chat_service.get_unread_counts(current_user.id))
             join_room(chat_info['id'])
-            # Уведомляем других участников
             for uid in member_ids:
                 if uid != current_user.id:
                     user = container.user_service.get_user_by_id(uid)
@@ -61,11 +70,19 @@ def register_groups_handlers(socketio, container):
 
     @socketio.on('add_to_group')
     def handle_add_to_group(data):
-        chat_id = data.get('chat_id')
-        user_id = data.get('user_id')
+        chat_id = data.get('chat_id', '').strip()
+        try:
+            user_id = int(data.get('user_id', 0))
+        except (ValueError, TypeError):
+            emit('error', {'message': 'Invalid user_id'})
+            return
+            
+        if not chat_id or not user_id:
+            emit('error', {'message': 'Invalid parameters'})
+            return
+            
         try:
             result = group_service.add_user_to_group(chat_id, user_id, current_user.id)
-            # Уведомляем добавляемого пользователя
             user = container.user_service.get_user_by_id(user_id)
             if user:
                 sid = redis_client.get(f"online:{user['username']}")
@@ -74,7 +91,6 @@ def register_groups_handlers(socketio, container):
                     socketio.emit('chat_created', chat_info, room=sid)
                     counts = message_service.get_unread_counts(user_id)
                     socketio.emit('unread_counts', counts, room=sid)
-            # Обновляем информацию о группе для всех участников
             updated_info = group_service.get_group_info(chat_id, None)
             if updated_info:
                 socketio.emit('group_info_updated', updated_info, room=chat_id)
@@ -84,8 +100,17 @@ def register_groups_handlers(socketio, container):
 
     @socketio.on('remove_from_group')
     def handle_remove_from_group(data):
-        chat_id = data.get('chat_id')
-        user_id = data.get('user_id')
+        chat_id = data.get('chat_id', '').strip()
+        try:
+            user_id = int(data.get('user_id', 0))
+        except (ValueError, TypeError):
+            emit('error', {'message': 'Invalid user_id'})
+            return
+            
+        if not chat_id or not user_id:
+            emit('error', {'message': 'Invalid parameters'})
+            return
+            
         try:
             result = group_service.remove_user_from_group(chat_id, user_id, current_user.id)
             if user_id != current_user.id:

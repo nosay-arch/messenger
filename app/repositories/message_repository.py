@@ -1,6 +1,6 @@
 from typing import Optional, List, Dict
 from sqlalchemy.orm import joinedload
-from sqlalchemy import func, or_
+from sqlalchemy import func
 from .base import BaseRepository
 from app.models.message import Message
 from app.models.last_read import LastRead
@@ -18,30 +18,45 @@ class MessageRepository(BaseRepository):
     def get_last_message(self, chat_id: str) -> Optional[Message]:
         return self.session.query(Message).filter_by(chat_id=chat_id).order_by(Message.id.desc()).first()
 
-    def get_chat_history(self, chat_id: str) -> List[Message]:
+    def get_chat_history(self, chat_id: str, limit: int = 100, offset: int = 0) -> List[Message]:
         return self.session.query(Message).filter_by(chat_id=chat_id).options(
             joinedload(Message.user)
-        ).order_by(Message.timestamp).all()
+        ).order_by(Message.timestamp.desc()).limit(limit).offset(offset).all()
 
     def count_unread_for_user(self, user_id: int, chat_ids: List[str]) -> Dict[str, int]:
         if not chat_ids:
             return {}
+        
         last_reads = self.session.query(LastRead.chat_id, LastRead.last_message_id).filter(
             LastRead.user_id == user_id,
             LastRead.chat_id.in_(chat_ids)
         ).all()
+        
         last_read_dict = {chat_id: last_id for chat_id, last_id in last_reads}
-        conditions = []
-        for chat_id in chat_ids:
-            last_id = last_read_dict.get(chat_id, 0)
-            conditions.append((Message.chat_id == chat_id) & (Message.id > last_id))
-        if not conditions:
-            return {}
+        
         results = self.session.query(
             Message.chat_id,
             func.count(Message.id)
-        ).filter(or_(*conditions)).group_by(Message.chat_id).all()
-        return dict(results)
+        ).filter(
+            Message.chat_id.in_(chat_ids),
+            Message.is_deleted == False
+        ).group_by(Message.chat_id).all()
+        
+        unread_counts = {}
+        for chat_id, total_count in results:
+            last_id = last_read_dict.get(chat_id, 0)
+            unread = self.session.query(func.count(Message.id)).filter(
+                Message.chat_id == chat_id,
+                Message.id > last_id,
+                Message.is_deleted == False
+            ).scalar()
+            unread_counts[chat_id] = unread or 0
+        
+        for chat_id in chat_ids:
+            if chat_id not in unread_counts:
+                unread_counts[chat_id] = 0
+        
+        return unread_counts
 
     def delete_message(self, message_id: int) -> bool:
         message = self.get_by_id(message_id)

@@ -1,5 +1,6 @@
 from typing import Optional, List, Tuple, Dict
 from sqlalchemy import select, case, func
+from sqlalchemy.exc import IntegrityError
 import uuid
 from .base import BaseRepository
 from app.models.chat import Chat
@@ -38,11 +39,22 @@ class ChatRepository(BaseRepository):
 
         last_msg_dict = {msg.chat_id: {'text': msg.text, 'timestamp': msg.timestamp.isoformat() if msg.timestamp else ''} for msg in last_msgs}
 
+        other_participants_subq = self.session.query(
+            ChatParticipant.chat_id,
+            User.username,
+            User.id
+        ).join(User, User.id == ChatParticipant.user_id).filter(
+            ChatParticipant.chat_id.in_(chat_ids),
+            ChatParticipant.user_id != user_id
+        ).subquery()
+
         result = []
         for chat in chats:
             if chat.type == 'private':
-                other = self.get_other_participant(chat.id, user_id)
-                name = other.username if other else 'Личный чат'
+                other = self.session.query(other_participants_subq.c.username).filter(
+                    other_participants_subq.c.chat_id == chat.id
+                ).first()
+                name = other[0] if other else 'Личный чат'
             else:
                 name = chat.name if chat.name else 'Группа'
             result.append({

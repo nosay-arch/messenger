@@ -12,6 +12,7 @@ from app.exceptions.auth_errors import (
     ValidationError
 )
 from app.repositories.user_repository import UserRepository
+from app.utils.validators import validate_email, validate_username, validate_password
 
 class AuthService:
     def __init__(self, user_repo: UserRepository, redis_client, config, email_task):
@@ -31,15 +32,12 @@ class AuthService:
         return False
 
     def register(self, username: str, email: str, password: str) -> Dict:
-        # Валидация
         if not username or not email or not password:
             raise ValidationError("All fields are required")
-        if len(username) < 3 or len(username) > 20:
-            raise ValidationError("Username must be 3-20 characters")
-        if len(password) < 4:
-            raise ValidationError("Password must be at least 4 characters")
-        if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
-            raise ValidationError("Invalid email")
+        
+        validate_username(username)
+        validate_email(email)
+        validate_password(password)
 
         if self.user_repo.get_by_username_ci(username):
             raise UsernameAlreadyExistsError("Username already taken")
@@ -48,10 +46,8 @@ class AuthService:
 
         password_hash = generate_password_hash(password)
         user = self.user_repo.create(username, email, password_hash)
-        # Сохраняем в БД (коммит)
         self.user_repo.session.commit()
 
-        # Генерация токена и отправка письма
         token = self._generate_confirmation_token(user)
         self.email_task.send_confirmation(user.email, user.username, token)
 
