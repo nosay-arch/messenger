@@ -1,4 +1,4 @@
-class PhoneAuth {
+class Auth {
     constructor(app) {
         this.app = app;
         this.currentStep = 'phone';
