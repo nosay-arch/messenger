@@ -9,36 +9,41 @@ class Auth {
     }
 
     attachPasswordToggleListeners() {
-        const passwordToggle = document.getElementById('auth-password-toggle');
-        const passwordConfirmToggle = document.getElementById('auth-password-confirm-toggle');
+        const passwordVisibilityBtn = document.getElementById('toggle-password-visibility');
+        const confirmPasswordVisibilityBtn = document.getElementById('toggle-password-confirm-visibility');
         const passwordInput = document.getElementById('auth-password');
         const passwordConfirmInput = document.getElementById('auth-password-confirm');
 
-        if (passwordToggle && passwordInput) {
-            passwordToggle.addEventListener('click', (e) => {
+        if (passwordVisibilityBtn && passwordInput) {
+            passwordVisibilityBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                this.togglePasswordVisibility(passwordInput, passwordToggle);
+                this.togglePasswordVisibility(passwordInput, passwordVisibilityBtn);
             });
         }
 
-        if (passwordConfirmToggle && passwordConfirmInput) {
-            passwordConfirmToggle.addEventListener('click', (e) => {
+        if (confirmPasswordVisibilityBtn && passwordConfirmInput) {
+            confirmPasswordVisibilityBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                this.togglePasswordVisibility(passwordConfirmInput, passwordConfirmToggle);
+                this.togglePasswordVisibility(passwordConfirmInput, confirmPasswordVisibilityBtn);
             });
         }
     }
 
     togglePasswordVisibility(input, button) {
         const icon = button.querySelector('i');
+        if (!icon) return;
         if (input.type === 'password') {
             input.type = 'text';
             icon.classList.remove('fa-eye');
             icon.classList.add('fa-eye-slash');
+            button.setAttribute('aria-label', 'Скрыть пароль');
+            button.setAttribute('aria-pressed', 'true');
         } else {
             input.type = 'password';
             icon.classList.remove('fa-eye-slash');
             icon.classList.add('fa-eye');
+            button.setAttribute('aria-label', 'Показать пароль');
+            button.setAttribute('aria-pressed', 'false');
         }
     }
 
