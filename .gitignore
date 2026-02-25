@@ -32,6 +32,8 @@ venv.bak/
 .env
 .env.local
 .env.*.local
+.env.prod
+.env.test
 
 instance/
 .webassets-cache
@@ -68,9 +70,5 @@ yarn-error.log
 dmypy.json
 
 .pyre/
-
-.env.example
-.env.prod
-.env.test
 
 celerybeat-schedule

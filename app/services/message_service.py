@@ -111,7 +111,7 @@ class MessageService:
             raise AccessDeniedError("Вы не можете редактировать сообщение другого пользователя")
 
         if datetime.utcnow() - message.timestamp > timedelta(minutes=5):
-            raise MessageEditTimeExpiredError("Сообщения можно редактировать только в течение 5 минут"}
+            raise MessageEditTimeExpiredError("Сообщения можно редактировать только в течение 5 минут")
 
         safe_text = escape_html(new_text)
         edited = self.message_repo.edit_message(message_id, safe_text)
