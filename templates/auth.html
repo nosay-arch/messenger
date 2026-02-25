@@ -44,14 +44,27 @@
                 <div id="profile-error" class="error-message hidden"></div>
                 <div class="input-group">
                     <i class="fas fa-user"></i>
-                    <input type="text" id="username-input" placeholder="Имя пользователя" autocomplete="off">
+                    <input type="text" id="profile-username-input" placeholder="Имя пользователя" autocomplete="off">
                 </div>
-                <button id="profile-create-btn" class="btn-primary btn-full">Создать профиль</button>
+                <button id="profile-register-btn" class="btn-primary btn-full">Создать профиль</button>
                 <button id="profile-back-btn" class="btn-secondary btn-full">← Назад</button>
             </div>
         </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script>
+        // Простая инициализация Auth класса для страницы логина
+        class SimpleAuthApp {
+            constructor() {
+                this.currentUserId = null;
+                this.currentUsername = '';
+                this.auth = new Auth(this);
+            }
+        }
+
+        // Инициализируем приложение
+        new SimpleAuthApp();
+    </script>
 </body>
 </html>

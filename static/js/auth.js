@@ -294,12 +294,19 @@ class Auth {
     }
 
     completeLogin() {
-        const elements = this.app.ui.elements;
-        if (elements.authOverlay) elements.authOverlay.classList.add('hidden');
-        if (elements.mainInterface) elements.mainInterface.classList.remove('hidden');
-        if (elements.popupUsername) elements.popupUsername.textContent = this.app.currentUsername;
-        if (elements.inputArea) elements.inputArea.classList.add('hidden');
-        this.app.socket.connect();
+        // Если это на странице логина (auth.html) - перейти на главную
+        if (window.location.pathname === '/login') {
+            window.location.href = '/';
+            return;
+        }
+        
+        // Если это в основном приложении - скрыть overlay и подключиться
+        const elements = this.app.ui?.elements;
+        if (elements && elements.authOverlay) elements.authOverlay.classList.add('hidden');
+        if (elements && elements.mainInterface) elements.mainInterface.classList.remove('hidden');
+        if (elements && elements.popupUsername) elements.popupUsername.textContent = this.app.currentUsername;
+        if (elements && elements.inputArea) elements.inputArea.classList.add('hidden');
+        if (this.app.socket) this.app.socket.connect();
         this.resetForm();
     }
 
@@ -361,17 +368,26 @@ class Auth {
                 const data = await response.json();
                 this.app.currentUserId = data.id;
                 this.app.currentUsername = data.username;
-                const loadingScreen = this.app.ui.elements.loadingScreen;
-                const mainInterface = this.app.ui.elements.mainInterface;
+                
+                // Если это на странице логина - просто перейти на главную
+                if (window.location.pathname === '/login') {
+                    window.location.href = '/';
+                    return;
+                }
+                
+                // Если это в основном приложении
+                const elements = this.app.ui?.elements;
+                const loadingScreen = elements?.loadingScreen;
+                const mainInterface = elements?.mainInterface;
                 if (loadingScreen) loadingScreen.classList.add('hidden');
                 if (mainInterface) mainInterface.classList.remove('hidden');
-                if (this.app.ui.elements.popupUsername) {
-                    this.app.ui.elements.popupUsername.textContent = this.app.currentUsername;
+                if (elements?.popupUsername) {
+                    elements.popupUsername.textContent = this.app.currentUsername;
                 }
-                if (this.app.ui.elements.inputArea) {
-                    this.app.ui.elements.inputArea.classList.add('hidden');
+                if (elements?.inputArea) {
+                    elements.inputArea.classList.add('hidden');
                 }
-                this.app.socket.connect();
+                if (this.app.socket) this.app.socket.connect();
             } else {
                 this.showAuthScreen();
             }
@@ -382,8 +398,14 @@ class Auth {
     }
 
     showAuthScreen() {
-        const loadingScreen = this.app.ui.elements.loadingScreen;
-        const authOverlay = this.app.ui.elements.authOverlay;
+        // Если это на странице логина, ничего не делаем
+        if (window.location.pathname === '/login') {
+            return;
+        }
+        
+        const elements = this.app.ui?.elements;
+        const loadingScreen = elements?.loadingScreen;
+        const authOverlay = elements?.authOverlay;
         if (loadingScreen) loadingScreen.classList.add('hidden');
         if (authOverlay) authOverlay.classList.remove('hidden');
         const phoneInput = document.getElementById('phone-input');
@@ -404,13 +426,19 @@ class Auth {
                 if (this.app.socket && this.app.socket.socket) {
                     this.app.socket.socket.disconnect();
                 }
-                this.app.ui.closeSidebar();
+                if (this.app.ui?.closeSidebar) {
+                    this.app.ui.closeSidebar();
+                }
                 location.reload();
             } else {
-                this.app.ui.showNotification('Ошибка при выходе');
+                if (this.app.ui?.showNotification) {
+                    this.app.ui.showNotification('Ошибка при выходе');
+                }
             }
         } catch (err) {
-            this.app.ui.showNotification('Ошибка соединения');
+            if (this.app.ui?.showNotification) {
+                this.app.ui.showNotification('Ошибка соединения');
+            }
             console.error('Logout error:', err);
         }
     }
