@@ -69,7 +69,8 @@
     position: absolute;
     right: 10px;
     top: 50%;
-    transform: translateY(-50%);
+    transform: scale(1) translateY(-50%);
+    transform-origin: center center;
     background: none;
     border: none;
     color: #666;
@@ -84,7 +85,7 @@
     border-radius: 4px;
     z-index: 2;
     margin: 0;
-        transition: color 0.18s ease, transform 0.18s ease, background-color 0.18s ease;
+        transition: transform 0.18s ease;
         background-color: transparent;
         outline: none;
         box-shadow: none;
@@ -92,14 +93,12 @@
 }
 
 .auth-card .toggle-password-btn:hover {
-        color: var(--accent, #4f7eb3);
-        transform: translateY(-50%) scale(1.03);
-        background-color: transparent;
+        transform: scale(1.03) translateY(-50%);
 }
 
-.auth-card .input-group:focus-within .toggle-password-btn {
-        color: var(--accent, #4f7eb3);
-}
+    .auth-card .input-group:focus-within .toggle-password-btn {
+        color: #4f7eb3;
+    }
 
 .auth-card input {
     width: 100%;
