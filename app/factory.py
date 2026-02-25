@@ -85,9 +85,9 @@ def create_app(config_object: Optional[object] = None) -> Flask:
     register_error_handlers(app)
     register_cors_headers(app)
 
-    if app.config.get("TESTING"):
-        with app.app_context():
-            db.create_all()
+    # Инициализация базы данных
+    with app.app_context():
+        db.create_all()
 
     return app
 
