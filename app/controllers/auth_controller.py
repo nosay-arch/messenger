@@ -15,52 +15,9 @@ bp = Blueprint('auth', __name__)
 def login_page():
     return render_template('index.html')
 
-@bp.route('/register', methods=['POST'])
-def register():
-    data = request.get_json()
-    try:
-        result = current_app.container.auth_service.register(
-            username=data.get('username', '').strip(),
-            email=data.get('email', '').strip().lower(),
-            password=data.get('password', '')
-        )
-        return jsonify({'success': True, 'message': 'Проверьте почту для подтверждения'}), 200
-    except ValidationError as e:
-        return jsonify({'error': str(e)}), 400
-    except UsernameAlreadyExistsError as e:
-        return jsonify({'error': str(e)}), 409
-    except EmailAlreadyExistsError as e:
-        return jsonify({'error': str(e)}), 409
-    except Exception as e:
-        current_app.logger.exception("Register error")
-        return jsonify({'error': 'Internal server error'}), 500
 
-@bp.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    login_str = data.get('login', '').strip()
-    password = data.get('password', '')
-    ip = request.remote_addr
 
-    try:
-        user_data = current_app.container.auth_service.login(login_str, password, ip)
-        # Загружаем пользователя из БД для flask-login
-        from app.models.user import User
-        user = User.query.get(user_data['id'])
-        login_user(user, remember=True)
-        return jsonify({'success': True, 'username': user_data['username'], 'id': user.id}), 200
-    except RateLimitExceededError as e:
-        return jsonify({'error': str(e)}), 429
-    except InvalidCredentialsError as e:
-        return jsonify({'error': str(e)}), 401
-    except UserNotFoundError as e:
-        # Это может быть случай с неподтверждённым email
-        if hasattr(e, 'not_confirmed') and e.not_confirmed:
-            return jsonify({'error': 'Подтвердите email перед входом', 'not_confirmed': True, 'email': e.email}), 401
-        return jsonify({'error': str(e)}), 401
-    except Exception as e:
-        current_app.logger.exception("Login error")
-        return jsonify({'error': 'Internal server error'}), 500
+
 
 @bp.route('/confirm/<token>')
 def confirm_email(token):
@@ -92,3 +49,78 @@ def logout():
     log_user_logout(current_user.id, current_user.username)
     logout_user()
     return jsonify({'success': True}), 200
+
+@bp.route('/send-code', methods=['POST'])
+def send_code():
+    data = request.get_json()
+    phone = data.get('phone', '').strip()
+    ip = request.remote_addr
+    
+    try:
+        result = current_app.container.auth_service.send_code(phone, ip)
+        return jsonify({
+            'success': True,
+            'message': result['message'],
+            'masked_phone': result['masked_phone']
+        }), 200
+    except ValidationError as e:
+        return jsonify({'error': str(e)}), 400
+    except RateLimitExceededError as e:
+        return jsonify({'error': str(e)}), 429
+    except Exception as e:
+        current_app.logger.exception("Send code error")
+        return jsonify({'error': 'Internal server error'}), 500
+
+@bp.route('/verify-code', methods=['POST'])
+def verify_code():
+    data = request.get_json()
+    phone = data.get('phone', '').strip()
+    code = data.get('code', '').strip()
+    ip = request.remote_addr
+    
+    try:
+        result = current_app.container.auth_service.verify_code(phone, code, ip)
+        
+        if result['exists']:
+            from app.models.user import User
+            user = User.query.get(result['user_id'])
+            login_user(user, remember=True)
+        
+        return jsonify({
+            'success': True,
+            'exists': result['exists'],
+            'user_id': result.get('user_id'),
+            'username': result.get('username'),
+            'phone': result['phone'],
+            'message': result.get('message')
+        }), 200
+    except Exception as e:
+        current_app.logger.exception(f"Verify code error: {e}")
+        return jsonify({'error': str(e)}), 400
+
+@bp.route('/register-by-phone', methods=['POST'])
+def register_by_phone():
+    data = request.get_json()
+    phone = data.get('phone', '').strip()
+    username = data.get('username', '').strip()
+    
+    try:
+        result = current_app.container.auth_service.register_by_phone(phone, username)
+        
+        from app.models.user import User
+        user = User.query.get(result['id'])
+        login_user(user, remember=True)
+        
+        return jsonify({
+            'success': True,
+            'user_id': result['id'],
+            'username': result['username'],
+            'phone': result['phone']
+        }), 200
+    except ValidationError as e:
+        return jsonify({'error': str(e)}), 400
+    except UsernameAlreadyExistsError as e:
+        return jsonify({'error': str(e)}), 409
+    except Exception as e:
+        current_app.logger.exception("Register by phone error")
+        return jsonify({'error': 'Internal server error'}), 500

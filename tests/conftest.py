@@ -38,17 +38,19 @@ def runner(app: Flask):
 @pytest.fixture
 def auth_headers(client):
     """Получить auth headers после регистрации и логина."""
-    # Регистрация
-    client.post("/api/v1/auth/register", json={
-        "username": "testuser",
-        "email": "test@example.com",
-        "password": "TestPass123"
-    })
-    
-    # Логин
-    response = client.post("/api/v1/auth/login", json={
-        "login": "testuser",
-        "password": "TestPass123"
-    })
-    
+    # Создаём пользователя напрямую в БД для тестов
+    from app.extensions import db
+    from app.models.user import User
+    from werkzeug.security import generate_password_hash
+
+    user = User(
+        username='testuser',
+        email='test@example.com',
+        password_hash=generate_password_hash('TestPass123'),
+        confirmed=True
+    )
+    with client.application.app_context():
+        db.session.add(user)
+        db.session.commit()
+
     return {}

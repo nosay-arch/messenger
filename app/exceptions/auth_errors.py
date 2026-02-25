@@ -23,3 +23,12 @@ class EmailAlreadyExistsError(AuthError):
 
 class RateLimitExceededError(AuthError):
     pass
+
+class PhoneAlreadyExistsError(AuthError):
+    pass
+
+class InvalidCodeError(AuthError):
+    pass
+
+class CodeExpiredError(AuthError):
+    pass

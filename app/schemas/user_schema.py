@@ -68,3 +68,20 @@ class ConfirmEmailSchema(BaseSchema):
 class ResendConfirmationSchema(BaseSchema):
     """Schema для переотправки письма подтверждения."""
     email = fields.Email(required=True)
+
+
+class PhoneSendSchema(BaseSchema):
+    phone = fields.Str(required=True)
+
+
+class PhoneVerifySchema(BaseSchema):
+    phone = fields.Str(required=True)
+    code = fields.Str(required=True)
+
+
+class PhoneRegisterSchema(BaseSchema):
+    phone = fields.Str(required=True)
+    username = fields.Str(required=True, validate=[
+        validate.Length(min=ValidationRules.USERNAME_MIN_LEN, max=ValidationRules.USERNAME_MAX_LEN),
+        validate.Regexp(r"^[a-zA-Z0-9_]+$", error="Username can only contain letters, digits and underscore")
+    ])

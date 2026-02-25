@@ -59,3 +59,5 @@ class FlaskMailProvider(EmailProvider):
                 app.logger.info(f"Confirmation email sent to {to_email}")
             except Exception as e:
                 app.logger.error(f"Failed to send confirmation email: {e}")
+    
+    # Email provider only handles email confirmation messages

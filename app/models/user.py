@@ -23,3 +23,11 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+    
+    phone_number = db.Column(db.String(20), unique=True, nullable=True)
+    phone_verified = db.Column(db.Boolean, default=False)
+    phone_verified_at = db.Column(db.DateTime)
+    
+    profile_completed = db.Column(db.Boolean, default=False)
+    bio = db.Column(db.String(500), nullable=True)
+    avatar_url = db.Column(db.String(255), nullable=True)

@@ -60,7 +60,7 @@ def create_app(config_object: Optional[object] = None) -> Flask:
     app.redis_client = redis_client
 
     # Создание контейнера зависимостей
-    app.container = Container(db.session, redis_client, app.config)
+    app.container = Container(db.session, redis_client, app.config, app)
 
     # Регистрация blueprints старых контроллеров (для Web UI)
     from app.controllers import auth_controller, pages_controller

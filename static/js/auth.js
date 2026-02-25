@@ -1,263 +1,259 @@
-// auth.js
-class Auth {
+class PhoneAuth {
     constructor(app) {
         this.app = app;
-        this.isLoginMode = true;
+        this.currentStep = 'phone';
+        this.phoneNumber = '';
         this.isSubmitting = false;
-        this.attachValidationListeners();
-        this.attachPasswordToggleListeners();
+        this.setupEventListeners();
     }
 
-    attachPasswordToggleListeners() {
-        const passwordVisibilityBtn = document.getElementById('toggle-password-visibility');
-        const confirmPasswordVisibilityBtn = document.getElementById('toggle-password-confirm-visibility');
-        const passwordInput = document.getElementById('auth-password');
-        const passwordConfirmInput = document.getElementById('auth-password-confirm');
-
-        if (passwordVisibilityBtn && passwordInput) {
-            passwordVisibilityBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.togglePasswordVisibility(passwordInput, passwordVisibilityBtn);
+    setupEventListeners() {
+        const phoneInput = document.getElementById('phone-input');
+        const codeInput = document.getElementById('code-input');
+        const usernameInput = document.getElementById('profile-username-input');
+        
+        if (phoneInput) {
+            phoneInput.addEventListener('input', () => this.clearError());
+        }
+        if (codeInput) {
+            codeInput.addEventListener('input', () => {
+                this.clearError();
+                if (codeInput.value.length === 6) {
+                    this.handleVerifyCode();
+                }
             });
         }
-
-        if (confirmPasswordVisibilityBtn && passwordConfirmInput) {
-            confirmPasswordVisibilityBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.togglePasswordVisibility(passwordConfirmInput, confirmPasswordVisibilityBtn);
-            });
+        if (usernameInput) {
+            usernameInput.addEventListener('input', () => this.clearError());
         }
     }
 
-    togglePasswordVisibility(input, button) {
-        const icon = button.querySelector('i');
-        if (!icon) return;
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
-            button.setAttribute('aria-label', 'Скрыть пароль');
-            button.setAttribute('aria-pressed', 'true');
-        } else {
-            input.type = 'password';
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
-            button.setAttribute('aria-label', 'Показать пароль');
-            button.setAttribute('aria-pressed', 'false');
+    clearError() {
+        const errorEl = document.getElementById('phone-error');
+        if (errorEl) {
+            errorEl.textContent = '';
+            errorEl.classList.add('hidden');
         }
-    }
-
-    attachValidationListeners() {
-        const elements = this.app.ui.elements;
-        elements.authLogin?.addEventListener('input', () => this.clearFieldError());
-        elements.authPassword.addEventListener('input', () => this.clearFieldError());
-        if (elements.authUsername) {
-            elements.authUsername.addEventListener('input', () => this.clearFieldError());
-        }
-        if (elements.authPasswordConfirm) {
-            elements.authPasswordConfirm.addEventListener('input', () => this.clearFieldError());
-        }
-    }
-
-    clearFieldError() {
-        this.hideError();
-    }
-
-    hideError() {
-        const errorEl = this.app.ui.elements.authError;
-        errorEl.textContent = '';
-        errorEl.classList.add('hidden');
     }
 
     showError(message) {
-        const errorEl = this.app.ui.elements.authError;
-        errorEl.textContent = message;
-        errorEl.classList.remove('hidden');
+        const errorEl = document.getElementById('phone-error');
+        if (errorEl) {
+            errorEl.textContent = message;
+            errorEl.classList.remove('hidden');
+        }
     }
 
-    validateField(field, value) {
-        if (field === 'login') {
-            return !value ? 'Поле не может быть пусто' : null;
-        }
-        if (field === 'password') {
-            return !value ? 'Поле не может быть пусто' : null;
-        }
-        if (field === 'username') {
-            return !value ? 'Поле не может быть пусто' : null;
-        }
-        if (field === 'email') {
-            if (!value) return 'Поле не может быть пусто';
-            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-            return !emailRegex.test(value) ? 'Неверный формат email' : null;
-        }
-        if (field === 'password_confirm') {
-            const password = this.app.ui.elements.authPassword.value;
-            return value !== password ? 'Пароли не совпадают' : null;
-        }
-        return null;
-    }
-
-    validateAll() {
-        const elements = this.app.ui.elements;
-        if (this.isLoginMode) {
-            const login = elements.authLogin.value.trim();
-            const password = elements.authPassword.value;
-            let error = this.validateField('login', login) || this.validateField('password', password);
-            if (error) {
-                this.showError(error);
-                return false;
-            }
-        } else {
-            const email = elements.authEmail.value.trim();
-            const username = elements.authUsername.value.trim();
-            const password = elements.authPassword.value;
-            const passwordConfirm = elements.authPasswordConfirm.value;
-            
-            let error = this.validateField('email', email) || 
-                       this.validateField('username', username) ||
-                       this.validateField('password', password) ||
-                       this.validateField('password_confirm', passwordConfirm);
-            if (error) {
-                this.showError(error);
-                return false;
-            }
-        }
-        this.hideError();
-        return true;
-    }
-
-    toggleMode() {
-        this.isLoginMode = !this.isLoginMode;
-        const elements = this.app.ui.elements;
-        elements.authTitle.textContent = this.isLoginMode ? 'Вход' : 'Регистрация';
-        elements.authSubmit.textContent = this.isLoginMode ? 'Войти' : 'Зарегистрироваться';
-        elements.authToggle.textContent = this.isLoginMode
-            ? 'Нет аккаунта? Зарегистрироваться'
-            : 'Уже есть аккаунт? Войти';
-        this.hideError();
-
-        const loginGroup = document.getElementById('login-group');
-        const emailGroup = document.getElementById('email-group');
-        const usernameGroup = document.getElementById('username-group');
-        const passwordConfirmGroup = document.getElementById('password-confirm-group');
-
-        if (loginGroup) loginGroup.classList.toggle('hidden', !this.isLoginMode);
-        if (emailGroup) emailGroup.classList.toggle('hidden', this.isLoginMode);
-        if (usernameGroup) usernameGroup.classList.toggle('hidden', this.isLoginMode);
-        if (passwordConfirmGroup) passwordConfirmGroup.classList.toggle('hidden', this.isLoginMode);
-
-        if (elements.authLogin) elements.authLogin.value = '';
-        if (elements.authEmail) elements.authEmail.value = '';
-        if (elements.authUsername) elements.authUsername.value = '';
-        elements.authPassword.value = '';
-        if (elements.authPasswordConfirm) elements.authPasswordConfirm.value = '';
-
-        setTimeout(() => {
-            if (this.isLoginMode && elements.authLogin) {
-                elements.authLogin.focus();
-            } else if (!this.isLoginMode && elements.authEmail) {
-                elements.authEmail.focus();
-            }
-        }, 100);
-    }
-
-    async handleAuth() {
+    async handleSendCode() {
         if (this.isSubmitting) return;
-        if (!this.validateAll()) return;
+        
+        const phoneInput = document.getElementById('phone-input');
+        if (!phoneInput || !phoneInput.value.trim()) {
+            this.showError('Введите номер телефона');
+            return;
+        }
 
         this.isSubmitting = true;
-        const elements = this.app.ui.elements;
-        const submitBtn = elements.authSubmit;
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = '⏳ Отправка...';
-        submitBtn.disabled = true;
-
-        let body;
-        if (this.isLoginMode) {
-            const login = elements.authLogin.value.trim();
-            const password = elements.authPassword.value.trim();
-            body = JSON.stringify({ login, password });
-        } else {
-            const email = elements.authEmail.value.trim().toLowerCase();
-            const username = elements.authUsername.value.trim();
-            const password = elements.authPassword.value.trim();
-            body = JSON.stringify({ email, username, password });
-        }
-
-        const url = this.isLoginMode ? '/login' : '/register';
+        const sendBtn = document.getElementById('phone-send-btn');
+        const originalText = sendBtn?.textContent;
 
         try {
             const csrfToken = document.getElementById('csrf-token').value;
-            const response = await fetch(url, {
+            const response = await fetch('/auth/send-code', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken },
-                body,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ phone: phoneInput.value.trim() })
             });
+
             const data = await response.json();
 
-            if (!response.ok || data.error) {
-                if (data.not_confirmed) {
-                    const email = data.email || (this.isLoginMode ? elements.authLogin.value.trim() : '');
-                    elements.authError.textContent = data.error + ' ';
-                    const link = document.createElement('a');
-                    link.href = '#';
-                    link.textContent = 'Отправить повторно';
-                    link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        this.resendConfirmation(email);
-                    });
-                    elements.authError.appendChild(link);
-                    elements.authError.classList.remove('hidden');
-                } else {
-                    this.showError(data.error || 'Ошибка сервера');
-                }
+            if (!response.ok) {
+                this.showError(data.error || 'Ошибка при отправке кода');
                 return;
             }
 
-            if (this.isLoginMode) {
-                this.app.currentUserId = data.id;
-                this.app.currentUsername = data.username;
-                elements.authOverlay.classList.add('hidden');
-                elements.mainInterface.classList.remove('hidden');
-                elements.popupUsername.textContent = this.app.currentUsername;
-                elements.inputArea.classList.add('hidden');
-                this.app.socket.connect();
-            } else {
-                elements.authEmail.value = '';
-                elements.authUsername.value = '';
-                elements.authPassword.value = '';
-                if (elements.authPasswordConfirm) elements.authPasswordConfirm.value = '';
-                this.isLoginMode = true;
-                elements.authTitle.textContent = 'Вход';
-                elements.authSubmit.textContent = 'Войти';
-                elements.authToggle.textContent = 'Нет аккаунта? Зарегистрироваться';
-                this.app.ui.showNotification(data.message || 'Проверьте почту для подтверждения', false);
-                document.getElementById('login-group').classList.remove('hidden');
-                document.getElementById('email-group').classList.add('hidden');
-                document.getElementById('username-group').classList.add('hidden');
-                document.getElementById('password-confirm-group').classList.add('hidden');
-            }
+            this.phoneNumber = phoneInput.value.trim();
+            this.currentStep = 'code';
+            this.showCodeStep(data.masked_phone);
         } catch (err) {
             this.showError('Ошибка соединения');
         } finally {
             this.isSubmitting = false;
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
+            if (sendBtn) sendBtn.textContent = originalText;
         }
     }
 
-    async resendConfirmation(email) {
+    showCodeStep(maskedPhone) {
+        const phoneStep = document.getElementById('phone-step');
+        const codeStep = document.getElementById('code-step');
+
+        if (phoneStep) phoneStep.classList.add('hidden');
+        if (codeStep) {
+            codeStep.classList.remove('hidden');
+            const phoneDisplay = codeStep.querySelector('.masked-phone');
+            if (phoneDisplay) phoneDisplay.textContent = maskedPhone;
+            const codeInput = document.getElementById('code-input');
+            if (codeInput) codeInput.focus();
+        }
+    }
+
+    async handleVerifyCode() {
+        if (this.isSubmitting) return;
+
+        const codeInput = document.getElementById('code-input');
+        if (!codeInput || !codeInput.value.trim() || codeInput.value.length !== 6) {
+            return;
+        }
+
+        this.isSubmitting = true;
+        const code = codeInput.value.trim();
+
         try {
             const csrfToken = document.getElementById('csrf-token').value;
-            const response = await fetch('/resend-confirmation', {
+            const response = await fetch('/auth/verify-code', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-                body: JSON.stringify({ email })
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    phone: this.phoneNumber,
+                    code
+                })
             });
+
             const data = await response.json();
-            this.app.ui.showNotification(data.message, !response.ok);
-        } catch {
-            this.app.ui.showNotification('Ошибка соединения', true);
+
+            if (!response.ok) {
+                this.showError(data.error || 'Ошибка проверки кода');
+                if (codeInput) codeInput.value = '';
+                return;
+            }
+
+            if (data.exists) {
+                this.app.currentUserId = data.user_id;
+                this.app.currentUsername = data.username;
+                this.completeLogin();
+            } else {
+                this.currentStep = 'profile';
+                this.showProfileStep();
+            }
+        } catch (err) {
+            this.showError('Ошибка соединения');
+            if (codeInput) codeInput.value = '';
+        } finally {
+            this.isSubmitting = false;
+        }
+    }
+
+    showProfileStep() {
+        const codeStep = document.getElementById('code-step');
+        const profileStep = document.getElementById('profile-step');
+
+        if (codeStep) codeStep.classList.add('hidden');
+        if (profileStep) {
+            profileStep.classList.remove('hidden');
+            const usernameInput = document.getElementById('profile-username-input');
+            if (usernameInput) usernameInput.focus();
+        }
+    }
+
+    async handleCompleteProfile() {
+        if (this.isSubmitting) return;
+
+        const usernameInput = document.getElementById('profile-username-input');
+        if (!usernameInput || !usernameInput.value.trim()) {
+            this.showError('Введите имя пользователя');
+            return;
+        }
+
+        this.isSubmitting = true;
+        const registerBtn = document.getElementById('profile-register-btn');
+        const originalText = registerBtn?.textContent;
+        if (registerBtn) registerBtn.textContent = '⏳ Регистрация...';
+
+        try {
+            const csrfToken = document.getElementById('csrf-token').value;
+            const response = await fetch('/auth/register-by-phone', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    phone: this.phoneNumber,
+                    username: usernameInput.value.trim()
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                this.showError(data.error || 'Ошибка регистрации');
+                return;
+            }
+
+            this.app.currentUserId = data.user_id;
+            this.app.currentUsername = data.username;
+            this.completeLogin();
+        } catch (err) {
+            this.showError('Ошибка соединения');
+        } finally {
+            this.isSubmitting = false;
+            if (registerBtn) registerBtn.textContent = originalText;
+        }
+    }
+
+    completeLogin() {
+        const elements = this.app.ui.elements;
+        elements.authOverlay.classList.add('hidden');
+        elements.mainInterface.classList.remove('hidden');
+        elements.popupUsername.textContent = this.app.currentUsername;
+        elements.inputArea.classList.add('hidden');
+        this.app.socket.connect();
+        this.resetForm();
+    }
+
+    resetForm() {
+        const phoneInput = document.getElementById('phone-input');
+        const codeInput = document.getElementById('code-input');
+        const usernameInput = document.getElementById('profile-username-input');
+
+        if (phoneInput) phoneInput.value = '';
+        if (codeInput) codeInput.value = '';
+        if (usernameInput) usernameInput.value = '';
+
+        this.clearError();
+        this.currentStep = 'phone';
+
+        document.getElementById('phone-step')?.classList.remove('hidden');
+        document.getElementById('code-step')?.classList.add('hidden');
+        document.getElementById('profile-step')?.classList.add('hidden');
+    }
+
+    goBack() {
+        if (this.currentStep === 'code') {
+            this.currentStep = 'phone';
+            const phoneStep = document.getElementById('phone-step');
+            const codeStep = document.getElementById('code-step');
+            if (phoneStep) phoneStep.classList.remove('hidden');
+            if (codeStep) codeStep.classList.add('hidden');
+            const codeInput = document.getElementById('code-input');
+            if (codeInput) codeInput.value = '';
+            this.clearError();
+        } else if (this.currentStep === 'profile') {
+            this.currentStep = 'code';
+            const codeStep = document.getElementById('code-step');
+            const profileStep = document.getElementById('profile-step');
+            if (codeStep) codeStep.classList.remove('hidden');
+            if (profileStep) profileStep.classList.add('hidden');
+            this.clearError();
         }
     }
 

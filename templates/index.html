@@ -57,6 +57,45 @@
 
                 <button id="auth-submit">Войти</button>
                 <button id="auth-toggle" class="secondary-button">Нет аккаунта? Зарегистрироваться</button>
+                    <div id="auth-overlay" class="auth-overlay hidden">
+                        <div class="auth-card">
+                            <div id="phone-error" class="error-message hidden"></div>
+                            <input type="hidden" id="csrf-token" value="{{ csrf_token() }}">
+
+                            <div id="phone-step">
+                                <h3>Вход по номеру телефона</h3>
+                                <div class="input-group">
+                                    <i class="fas fa-phone"></i>
+                                    <input type="tel" id="phone-input" placeholder="+7 (900) 123-45-67" autocomplete="off">
+                                </div>
+                                <button id="phone-send-btn" class="btn-primary">Отправить код</button>
+                            </div>
+
+                            <div id="code-step" class="hidden">
+                                <h3>Введите код</h3>
+                                <p class="auth-subtitle">Код отправлен на <span class="masked-phone"></span></p>
+                                <div class="input-group">
+                                    <i class="fas fa-lock"></i>
+                                    <input type="text" id="code-input" placeholder="000000" maxlength="6" autocomplete="off" inputmode="numeric">
+                                </div>
+                                <button id="code-back-btn" class="btn-secondary">Назад</button>
+                            </div>
+
+                            <div id="profile-step" class="hidden">
+                                <h3>Создание профиля</h3>
+                                <div class="input-group">
+                                    <i class="fas fa-user"></i>
+                                    <input type="text" id="profile-username-input" placeholder="Ваше имя в приложении" autocomplete="off">
+                                </div>
+                                <div class="input-group">
+                                    <i class="fas fa-quote-left"></i>
+                                    <textarea id="profile-bio-input" placeholder="О себе (опционально)" maxlength="500"></textarea>
+                                </div>
+                                <button id="profile-register-btn" class="btn-primary">Начать</button>
+                                <button id="profile-back-btn" class="btn-secondary">Назад</button>
+                            </div>
+                        </div>
+                    </div>
             </div>
         </div>
 
@@ -81,6 +120,27 @@
                             </button>
                             <div class="popup-footer">
                                 <span class="popup-version">версия 1.0.0</span>
+                                                    <div id="user-popup" class="user-popup hidden">
+                                                        <div class="popup-header">
+                                                            <div class="popup-username" id="popup-username"></div>
+                                                        </div>
+                                                        <div class="popup-divider"></div>
+                                                        <button id="popup-profile" class="popup-item">
+                                                            <i class="fas fa-user-circle"></i>
+                                                            <span>Профиль</span>
+                                                        </button>
+                                                        <button id="popup-create-group" class="popup-item">
+                                                            <i class="fas fa-users"></i>
+                                                            <span>Создать группу</span>
+                                                        </button>
+                                                        <button id="popup-logout" class="popup-item logout">
+                                                            <i class="fas fa-sign-out-alt"></i>
+                                                            <span>Выйти</span>
+                                                        </button>
+                                                        <div class="popup-footer">
+                                                            <span class="popup-version">версия 1.0.0</span>
+                                                        </div>
+                                                    </div>
                             </div>
                         </div>
                     </div>
@@ -124,6 +184,7 @@
     <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
     <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
     <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
     <script src="{{ url_for('static', filename='js/socket.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

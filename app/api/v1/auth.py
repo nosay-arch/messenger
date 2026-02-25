@@ -5,10 +5,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from marshmallow import ValidationError as MarshmallowValidationError
 
 from app.schemas import (
-    UserRegisterSchema,
-    UserLoginSchema,
     UserResponseSchema,
-    ResendConfirmationSchema
 )
 from app.utils.decorators import handle_errors, require_email_confirmed
 from app.exceptions.auth_errors import (
@@ -26,61 +23,30 @@ from app.logging import log_user_login, log_user_logout
 bp = Blueprint("api_v1_auth", __name__, url_prefix="/api/v1/auth")
 
 
-@bp.route("/register", methods=["POST"])
+@bp.route('/send-code', methods=['POST'])
 @handle_errors
-def register() -> Tuple[Any, int]:
-    """Регистрация нового пользователя."""
-    schema = UserRegisterSchema()
-    
-    try:
-        data = schema.load(request.get_json() or {})
-    except MarshmallowValidationError as e:
-        raise ValidationError(str(e.messages))
-    
-    try:
-        result = current_app.container.auth_service.register(
-            username=data.get("username", "").strip(),
-            email=data.get("email", "").strip().lower(),
-            password=data.get("password", "")
-        )
-        return jsonify({
-            "success": True,
-            "message": "Check your email to confirm registration"
-        }), 201
-    except (ValidationError, UsernameAlreadyExistsError, EmailAlreadyExistsError):
-        raise
+def send_code() -> Tuple[Any, int]:
+    data = request.get_json() or {}
+    phone = data.get('phone', '').strip()
+    ip = request.remote_addr or 'unknown'
+    result = current_app.container.auth_service.send_code(phone, ip)
+    return jsonify({'success': True, 'message': result['message'], 'masked_phone': result['masked_phone']}), 200
 
 
-@bp.route("/login", methods=["POST"])
+@bp.route('/verify-code', methods=['POST'])
 @handle_errors
-def login() -> Tuple[Any, int]:
-    """Вход пользователя."""
-    schema = UserLoginSchema()
-    
-    try:
-        data = schema.load(request.get_json() or {})
-    except MarshmallowValidationError as e:
-        raise ValidationError(str(e.messages))
-    
-    ip = request.remote_addr or "unknown"
-    
-    try:
-        user_data = current_app.container.auth_service.login(
-            data.get("login", ""),
-            data.get("password", ""),
-            ip
-        )
-        
-        user = User.query.get(user_data["id"])
+def verify_code() -> Tuple[Any, int]:
+    data = request.get_json() or {}
+    phone = data.get('phone', '').strip()
+    code = data.get('code', '').strip()
+    ip = request.remote_addr or 'unknown'
+    result = current_app.container.auth_service.verify_code(phone, code, ip)
+    if result.get('exists'):
+        user = User.query.get(result['user_id'])
         login_user(user, remember=True)
-        
         response_schema = UserResponseSchema()
-        return jsonify({
-            "success": True,
-            "user": response_schema.dump(user)
-        }), 200
-    except (RateLimitExceededError, InvalidCredentialsError, UserNotFoundError):
-        raise
+        return jsonify({'success': True, 'user': response_schema.dump(user)}), 200
+    return jsonify({'success': True, 'exists': False, 'message': result.get('message')}), 200
 
 
 @bp.route("/confirm/<token>", methods=["GET"])
@@ -97,27 +63,31 @@ def confirm_email(token: str) -> Tuple[Any, int]:
         )
 
 
-@bp.route("/resend-confirmation", methods=["POST"])
+@bp.route('/login-by-phone', methods=['POST'])
 @handle_errors
-def resend_confirmation() -> Tuple[Any, int]:
-    """Переотправка письма подтверждения."""
-    schema = ResendConfirmationSchema()
-    
-    try:
-        data = schema.load(request.get_json() or {})
-    except MarshmallowValidationError as e:
-        raise ValidationError(str(e.messages))
-    
-    try:
-        result = current_app.container.auth_service.resend_confirmation(
-            data.get("email", "").strip().lower()
-        )
-        return jsonify({
-            "success": True,
-            "message": result["message"]
-        }), 200
-    except (UserNotFoundError, ValidationError):
-        raise
+def login_by_phone() -> Tuple[Any, int]:
+    """Вход по номеру телефона."""
+    data = request.get_json() or {}
+    phone = data.get('phone', '').strip()
+    ip = request.remote_addr or 'unknown'
+    result = current_app.container.auth_service.login_by_phone(phone, ip)
+    user = User.query.get(result['id'])
+    login_user(user, remember=True)
+    response_schema = UserResponseSchema()
+    return jsonify({'success': True, 'user': response_schema.dump(user)}), 200
+
+
+@bp.route('/register-by-phone', methods=['POST'])
+@handle_errors
+def register_by_phone() -> Tuple[Any, int]:
+    data = request.get_json() or {}
+    phone = data.get('phone', '').strip()
+    username = data.get('username', '').strip()
+    result = current_app.container.auth_service.register_by_phone(phone, username)
+    user = User.query.get(result['id'])
+    login_user(user, remember=True)
+    response_schema = UserResponseSchema()
+    return jsonify({'success': True, 'user': response_schema.dump(user)}), 201
 
 
 @bp.route("/logout", methods=["POST"])

@@ -29,3 +29,15 @@ def validate_password(password: str):
 def validate_message_text(text: str):
     if not text or len(text) > 500:
         raise ValidationError("Текст сообщения должен быть от 1 до 500 символов")
+
+def normalize_phone(phone: str) -> str:
+    normalized = re.sub(r'\D', '', phone)
+    return normalized
+
+def validate_phone(phone: str):
+    normalized = normalize_phone(phone)
+    if len(normalized) < 10 or len(normalized) > 15:
+        raise ValidationError("Номер телефона должен содержать от 10 до 15 цифр")
+    if not re.match(r'^\d{10,15}$', normalized):
+        raise ValidationError("Неверный формат номера телефона")
+    return normalized
