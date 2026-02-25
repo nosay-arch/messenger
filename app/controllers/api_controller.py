@@ -6,9 +6,11 @@ bp = Blueprint('api', __name__, url_prefix='/api')
 @bp.route('/me')
 @login_required
 def me():
-    if not current_user.confirmed:
-        return jsonify({'error': 'Email not confirmed'}), 403
-    return jsonify({'id': current_user.id, 'username': current_user.username, 'confirmed': current_user.confirmed}), 200
+    return jsonify({
+        'id': current_user.id,
+        'username': current_user.username,
+        'phone': current_user.phone_number
+    }), 200
 
 @bp.route('/users')
 @login_required

@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from redis import Redis
 from app.tasks.email_tasks import EmailTask
 from app.services.chat_service import ChatService
-from app.integrations.email_provider import FlaskMailProvider
 from app.integrations.sms_provider import GenericHttpSmsProvider
 from app.repositories import (
     UserRepository,
@@ -35,8 +34,7 @@ class Container:
         self.message_repo = MessageRepository(db_session)
         self.last_read_repo = LastReadRepository(db_session)
 
-        # Email провайдер
-        email_provider = FlaskMailProvider(app)
+        # SMS провайдер
         sms_provider = GenericHttpSmsProvider(app)
         email_task = EmailTask()
 
@@ -45,7 +43,6 @@ class Container:
             user_repo=self.user_repo,
             redis_client=self.redis_client,
             config=self.config,
-            email_provider=email_provider,
             sms_provider=sms_provider
         )
         self.user_service = UserService(

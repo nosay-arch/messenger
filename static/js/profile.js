@@ -13,10 +13,44 @@ class ProfileManager {
             });
         }
 
+        // Profile button handler
+        const profileBtn = document.getElementById('popup-profile');
+        if (profileBtn) {
+            profileBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.openProfileMenu();
+            });
+        }
+
+        // Create group button handler
+        const createGroupBtn = document.getElementById('popup-create-group');
+        if (createGroupBtn) {
+            createGroupBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleUserPopup();
+                if (this.app && this.app.chat) {
+                    this.app.chat.showCreateGroupDialog?.();
+                }
+            });
+        }
+
+        // Logout button handler
+        const logoutBtn = document.getElementById('popup-logout');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleUserPopup();
+                if (this.app && this.app.auth) {
+                    this.app.auth.logout();
+                }
+            });
+        }
+
         document.addEventListener('click', (e) => {
             const userPopup = document.getElementById('user-popup');
-            if (userPopup && !userPopup.contains(e.target) && !userMenuBtn.contains(e.target)) {
-                userPopup?.classList.add('hidden');
+            const userMenuButton = document.getElementById('user-menu-button');
+            if (userPopup && userMenuButton && !userPopup.contains(e.target) && !userMenuButton.contains(e.target)) {
+                userPopup.classList.add('hidden');
             }
         });
     }

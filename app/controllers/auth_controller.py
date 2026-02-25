@@ -1,46 +1,12 @@
-from flask import Blueprint, request, jsonify, current_app, url_for, redirect, render_template
-from flask_login import login_user, logout_user, login_required
+from flask import Blueprint, request, jsonify, current_app
+from flask_login import login_user, logout_user, login_required, current_user
 from app.exceptions.auth_errors import (
     ValidationError,
     UsernameAlreadyExistsError,
-    EmailAlreadyExistsError,
-    InvalidCredentialsError,
-    UserNotFoundError,
     RateLimitExceededError
 )
 
 bp = Blueprint('auth', __name__)
-
-@bp.route('/login')
-def login_page():
-    return render_template('index.html')
-
-
-
-
-
-@bp.route('/confirm/<token>')
-def confirm_email(token):
-    try:
-        result = current_app.container.auth_service.confirm_user(token)
-        return redirect(url_for('pages.index', confirmed='1', message='Email подтверждён'))
-    except (UserNotFoundError, ValidationError) as e:
-        return redirect(url_for('pages.index', confirmed='0', message=str(e)))
-
-@bp.route('/resend-confirmation', methods=['POST'])
-def resend_confirmation():
-    data = request.get_json()
-    email = data.get('email', '').strip().lower()
-    try:
-        result = current_app.container.auth_service.resend_confirmation(email)
-        return jsonify({'success': True, 'message': result['message']}), 200
-    except UserNotFoundError as e:
-        return jsonify({'error': str(e)}), 404
-    except ValidationError as e:
-        return jsonify({'error': str(e)}), 400
-    except Exception as e:
-        current_app.logger.exception("Resend error")
-        return jsonify({'error': 'Internal server error'}), 500
 
 @bp.route('/logout', methods=['POST'])
 @login_required
