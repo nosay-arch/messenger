@@ -2,13 +2,14 @@
 import pytest
 from app import create_app
 from app.extensions import db as _db
+from config.testing import TestingConfig
 from flask import Flask
 
 
 @pytest.fixture(scope="session")
 def app() -> Flask:
     """Создать Flask приложение для тестов."""
-    app = create_app({'TESTING': True})
+    app = create_app(TestingConfig)
     return app
 
 

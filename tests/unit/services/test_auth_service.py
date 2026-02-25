@@ -15,7 +15,10 @@ from unittest.mock import Mock, MagicMock
 @pytest.fixture
 def mock_user_repo():
     """Mock UserRepository."""
-    return Mock(spec=UserRepository)
+    mock_repo = Mock(spec=UserRepository)
+    mock_repo.session = Mock()
+    mock_repo.session.commit = Mock()
+    return mock_repo
 
 
 @pytest.fixture

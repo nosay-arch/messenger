@@ -1,8 +1,15 @@
 """Точка входа приложения для запуска сервера."""
 import argparse
+import sys
 import eventlet
 
-eventlet.monkey_patch()
+if sys.version_info < (3, 13):
+    eventlet.monkey_patch()
+else:
+    try:
+        eventlet.monkey_patch()
+    except (AttributeError, ImportError):
+        print("Warning: eventlet monkey_patch failed on Python 3.13+, continuing without it")
 
 from app import create_app
 from app.extensions import socketio
