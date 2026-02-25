@@ -78,8 +78,10 @@ class UI {
         if (Utils.isMobile()) return;
         this.app.isResizing = true;
         document.body.style.cursor = 'col-resize';
-        document.addEventListener('mousemove', this.resize.bind(this));
-        document.addEventListener('mouseup', this.stopResize.bind(this));
+        this.resizeHandler = this.resize.bind(this);
+        this.stopResizeHandler = this.stopResize.bind(this);
+        document.addEventListener('mousemove', this.resizeHandler);
+        document.addEventListener('mouseup', this.stopResizeHandler);
         e.preventDefault();
     }
 
@@ -94,8 +96,14 @@ class UI {
     stopResize() {
         this.app.isResizing = false;
         document.body.style.cursor = '';
-        document.removeEventListener('mousemove', this.resize);
-        document.removeEventListener('mouseup', this.stopResize);
+        if (this.resizeHandler) {
+            document.removeEventListener('mousemove', this.resizeHandler);
+        }
+        if (this.stopResizeHandler) {
+            document.removeEventListener('mouseup', this.stopResizeHandler);
+        }
+        this.resizeHandler = null;
+        this.stopResizeHandler = null;
     }
 
     toggleSidebar() {

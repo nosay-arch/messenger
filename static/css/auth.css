@@ -2,7 +2,7 @@
 .auth-overlay {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -12,13 +12,13 @@
 
 .auth-card {
     width: 90%;
-    max-width: 360px;
-    padding: 24px;
-    background: #2a2a2a;
-    border-radius: 6px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    max-width: 400px;
+    padding: 32px;
+    background: var(--panel);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
     animation: slideUp 0.2s ease;
-    border: 1px solid #3a3a3a;
+    border: 1px solid var(--border);
 }
 
 @keyframes fadeIn {
@@ -32,10 +32,10 @@
 }
 
 .auth-card h3 {
-    margin-bottom: 20px;
-    font-size: 1.5rem;
-    font-weight: 400;
-    color: #e5e5e5;
+    margin-bottom: 24px;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--text);
     text-align: center;
 }
 
@@ -49,12 +49,12 @@
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    color: #666;
+    color: var(--text-muted);
     font-size: 0.9rem;
 }
 
 .auth-card .input-group:focus-within i {
-    color: #4f7eb3;
+    color: var(--accent);
 }
 
 .auth-card .password-input-group {
@@ -73,7 +73,7 @@
     transform-origin: center center;
     background: none;
     border: none;
-    color: #666;
+    color: var(--text-muted);
     cursor: pointer;
     font-size: 0.9rem;
     padding: 0;
@@ -85,50 +85,53 @@
     border-radius: 4px;
     z-index: 2;
     margin: 0;
-        transition: transform 0.18s ease;
-        background-color: transparent;
-        outline: none;
-        box-shadow: none;
-        -webkit-tap-highlight-color: transparent;
+    transition: transform 0.18s ease, color 0.15s ease;
+    background-color: transparent;
+    outline: none;
+    box-shadow: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .auth-card .toggle-password-btn:hover {
-        transform: scale(1.03) translateY(-50%);
+    transform: scale(1.03) translateY(-50%);
+    color: var(--accent);
 }
 
-    .auth-card .input-group:focus-within .toggle-password-btn {
-        color: #4f7eb3;
-    }
+.auth-card .input-group:focus-within .toggle-password-btn {
+    color: var(--accent);
+}
 
 .auth-card input {
     width: 100%;
     padding: 10px 10px 10px 36px;
-    border: 1px solid #3a3a3a;
-    border-radius: 4px;
-    background: #2a2a2a;
-    color: #e5e5e5;
-    font-size: 0.9rem;
-    transition: border 0.1s;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--card);
+    color: var(--text);
+    font-size: 0.95rem;
+    transition: border 0.15s, box-shadow 0.15s;
 }
 
 .auth-card input:focus {
-    border-color: #4f7eb3;
+    border-color: var(--accent);
     outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .auth-card input::placeholder {
-    color: #666;
+    color: var(--text-muted);
 }
 
 .auth-card .error-message {
-    color: #ff9999;
-    font-size: 0.8rem;
+    color: var(--danger);
+    font-size: 0.85rem;
     margin-bottom: 12px;
     text-align: center;
     padding: 8px;
-    border-radius: 4px;
-    background: #3a2a2a;
+    border-radius: 6px;
+    background: rgba(239, 68, 68, 0.1);
     animation: shake 0.1s ease;
+    border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 @keyframes shake {
@@ -143,20 +146,21 @@
 
 .auth-card button {
     width: 100%;
-    padding: 10px;
-    background: var(--accent, #4f7eb3);
-    color: #fff;
+    padding: 11px;
+    background: var(--accent);
+    color: white;
     border: none;
     border-radius: 6px;
-    font-weight: 500;
-    font-size: 0.9rem;
+    font-weight: 600;
+    font-size: 0.95rem;
     cursor: pointer;
-    transition: background 0.1s;
+    transition: background 0.15s, box-shadow 0.15s;
     margin-bottom: 12px;
 }
 
 .auth-card button:hover:not(:disabled) {
-    background: #3d6a9c;
+    background: var(--accent-dark);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .auth-card button:active:not(:disabled) {
@@ -164,19 +168,20 @@
 }
 
 .auth-card button:disabled {
-    background: #444;
+    background: var(--text-muted);
     pointer-events: none;
+    opacity: 0.6;
 }
 
 .auth-card .secondary-button {
     background: transparent;
-    color: #888;
-    border: 1px solid #3a3a3a;
+    color: var(--accent);
+    border: 1px solid var(--border);
 }
 
 .auth-card .secondary-button:hover:not(:disabled) {
-    background: #333;
-    color: #fff;
+    background: var(--card);
+    border-color: var(--accent);
 }
 
 .hidden {
