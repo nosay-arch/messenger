@@ -76,6 +76,7 @@ def create_app(config_object: Optional[object] = None) -> Flask:
         app,
         cors_allowed_origins=app.config["CORS_ORIGINS"],
         message_queue=app.config["REDIS_URL"],
+        async_mode='threading',
         csrf=False
     )
     register_socket_handlers(socketio, app.container)
