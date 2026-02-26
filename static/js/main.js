@@ -12,23 +12,8 @@ class ChatApplication {
     }
 
     init() {
-        this.checkUrlConfirmation();
         this.bindEvents();
         this.auth.tryAutoLogin();
-    }
-
-    checkUrlConfirmation() {
-        const params = new URLSearchParams(window.location.search);
-        const confirmed = params.get('confirmed');
-        const message = params.get('message');
-        if (confirmed === '1') {
-            this.ui.showNotification('Email подтверждён! Теперь можно войти.', false);
-        } else if (confirmed === '0' && message) {
-            this.ui.showNotification(decodeURIComponent(message), true);
-        }
-        if (confirmed !== null) {
-            history.replaceState({}, document.title, window.location.pathname);
-        }
     }
 
     bindEvents() {

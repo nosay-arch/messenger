@@ -1,38 +1,23 @@
 /* base.css */
-:root{
-    /* Тёмная цветовая палитра (по умолчанию) */
-    --bg: #0f1419;
-    --panel: #1a1f2e;
-    --card: #252d3d;
-    --accent: #3b82f6;
-    --accent-dark: #2563eb;
-    --text: #e4e6eb;
-    --text-muted: #a0a6b0;
-    --border: #363f52;
-    --danger: #f87171;
-    --success: #34d399;
-    --warning: #fbbf24;
-    
-    /* Тень */
-    --shadow: rgba(0, 0, 0, 0.3);
-    --shadow-lg: rgba(0, 0, 0, 0.5);
-}
+:root {
+    /* Тёмная тема */
+    --bg: #1a1a1a;               /* основной фон */
+    --panel: #2d2d2d;            /* панели и карточки */
+    --card: #3a3a3a;             /* элементы внутри панелей */
+    --accent: #6c757d;           /* акцент (серый) */
+    --accent-dark: #5a6268;      /* тёмный акцент */
+    --text: #e0e0e0;             /* основной текст */
+    --text-muted: #a0a0a0;       /* второстепенный текст */
+    --border: #404040;           /* границы */
 
-/* Светлая тема (опционально через media query или класс) */
-body.light-mode {
-    --bg: #fafafa;
-    --panel: #ffffff;
-    --card: #f5f5f5;
-    --accent: #3b82f6;
-    --accent-dark: #2563eb;
-    --text: #1f2937;
-    --text-muted: #6b7280;
-    --border: #e5e7eb;
-    --danger: #ef4444;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --shadow: rgba(0, 0, 0, 0.1);
-    --shadow-lg: rgba(0, 0, 0, 0.15);
+    /* Семантические цвета */
+    --danger: #dc3545;
+    --success: #28a745;
+    --warning: #ffc107;
+
+    /* Тени – мягкие, полупрозрачные */
+    --shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);
 }
 
 * {
@@ -56,7 +41,6 @@ body {
     background: var(--bg);
     display: flex;
     flex-direction: column;
-    box-shadow: none;
 }
 
 .hidden {
@@ -64,7 +48,7 @@ body {
 }
 
 .loader {
-    border: 2px solid #e5e7eb;
+    border: 2px solid var(--border);
     border-top: 2px solid var(--accent);
     border-radius: 50%;
     width: 28px;
@@ -99,7 +83,6 @@ body {
 .loading-screen p {
     color: var(--text-muted);
     font-size: 0.9rem;
-    font-weight: 400;
 }
 
 .notification {
@@ -117,6 +100,10 @@ body {
     font-weight: 500;
     font-size: 0.9rem;
     border-left: 3px solid var(--accent);
+}
+
+.notification.error {
+    border-left-color: var(--danger);
 }
 
 .notification.show {

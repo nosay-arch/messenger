@@ -5,8 +5,6 @@ from .user_schema import (
     UserResponseSchema,
     UserSearchSchema,
     UserSimpleSchema,
-    ConfirmEmailSchema,
-    ResendConfirmationSchema
 )
 from .chat_schema import (
     ChatMessageSchema,
@@ -29,11 +27,6 @@ __all__ = [
     "UserResponseSchema",
     "UserSearchSchema",
     "UserSimpleSchema",
-    "ConfirmEmailSchema",
-    "ResendConfirmationSchema",
-    "PhoneSendSchema",
-    "PhoneVerifySchema",
-    "PhoneRegisterSchema",
     "ChatMessageSchema",
     "ChatListItemSchema",
     "ChatParticipantSchema",

@@ -22,52 +22,47 @@
             <div class="auth-card">
                 <input type="hidden" id="csrf-token" value="{{ csrf_token() }}">
 
-                <div id="phone-step">
-                    <h2 class="auth-card-title">Добро пожаловать</h2>
-                    <p class="auth-card-subtitle">Войдите с помощью номера телефона</p>
-                    <div id="phone-error" class="error-message hidden"></div>
-                    <div class="input-group">
-                        <i class="fas fa-phone"></i>
-                        <input type="tel" id="phone-input" placeholder="+7 (900) 123-45-67" autocomplete="off">
-                    </div>
-                    <button id="phone-send-btn" class="btn-primary btn-full">Отправить код</button>
+                <div class="auth-header">
+                    <h2 id="auth-title" class="auth-card-title">Вход</h2>
+                    <p id="auth-subtitle" class="auth-card-subtitle">Введите свои данные</p>
                 </div>
 
-                <div id="code-step" class="hidden">
-                    <h2 class="auth-card-title">Проверка кода</h2>
-                    <p class="auth-card-subtitle">Код отправлен на <span class="masked-phone"></span></p>
-                    <div id="code-error" class="error-message hidden"></div>
+                <div id="auth-error" class="error-message hidden"></div>
+
+                <div class="auth-fields">
+                    <div class="input-group" id="login-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="auth-login" placeholder="Имя пользователя" autocomplete="username">
+                    </div>
+
+                    <div class="input-group hidden" id="username-group">
+                        <i class="fas fa-user-plus"></i>
+                        <input type="text" id="auth-username" placeholder="Имя (только для регистрации)" autocomplete="off">
+                    </div>
+
                     <div class="input-group">
                         <i class="fas fa-lock"></i>
-                        <input type="text" id="code-input" placeholder="000000" maxlength="6" autocomplete="off" inputmode="numeric">
+                        <input type="password" id="auth-password" placeholder="Пароль" autocomplete="current-password">
                     </div>
-                    <button id="code-verify-btn" class="btn-primary btn-full">Проверить</button>
-                    <button id="code-back-btn" class="btn-secondary btn-full">← Назад</button>
+
+                    <div class="input-group hidden" id="password-confirm-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="auth-password-confirm" placeholder="Подтвердите пароль" autocomplete="new-password">
+                    </div>
                 </div>
 
-                <div id="profile-step" class="hidden">
-                    <h2 class="auth-card-title">Создание профиля</h2>
-                    <div id="profile-error" class="error-message hidden"></div>
-                    <div class="input-group">
-                        <i class="fas fa-user"></i>
-                        <input type="text" id="profile-username-input" placeholder="Ваше имя в приложении" autocomplete="off" maxlength="80">
-                    </div>
-                    <div class="input-group">
-                        <i class="fas fa-quote-left"></i>
-                        <textarea id="profile-bio-input" placeholder="О себе (опционально)" maxlength="500"></textarea>
-                    </div>
-                    <button id="profile-register-btn" class="btn-primary btn-full">Начать</button>
-                    <button id="profile-back-btn" class="btn-secondary btn-full">← Назад</button>
-                </div>
+                <button id="auth-submit" class="btn-primary btn-full">Войти</button>
+                <button id="auth-toggle" class="btn-link">Нет аккаунта? Зарегистрироваться</button>
             </div>
         </div>
 
         <div id="main-interface" class="main-panel hidden">
-
             <div class="chats-sidebar" id="chats-sidebar">
                 <div class="chats-header">
                     <div class="chats-header-left">
-                        <button id="user-menu-button" class="user-menu-button">⋯</button>
+                        <button id="user-menu-button" class="user-menu-button">
+                            <i class="fas fa-bars"></i>
+                        </button>
                         <div id="user-popup" class="user-popup hidden">
                             <div class="popup-header">
                                 <div class="popup-username" id="popup-username"></div>

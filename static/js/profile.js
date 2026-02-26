@@ -13,7 +13,6 @@ class ProfileManager {
             });
         }
 
-        // Profile button handler
         const profileBtn = document.getElementById('popup-profile');
         if (profileBtn) {
             profileBtn.addEventListener('click', (e) => {
@@ -22,7 +21,6 @@ class ProfileManager {
             });
         }
 
-        // Create group button handler
         const createGroupBtn = document.getElementById('popup-create-group');
         if (createGroupBtn) {
             createGroupBtn.addEventListener('click', (e) => {
@@ -34,7 +32,6 @@ class ProfileManager {
             });
         }
 
-        // Logout button handler
         const logoutBtn = document.getElementById('popup-logout');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', (e) => {
@@ -68,11 +65,14 @@ class ProfileManager {
             userPopup.classList.add('hidden');
         }
 
-        const profileModal = document.getElementById('profile-modal');
+        let profileModal = document.getElementById('profile-modal');
         if (!profileModal) {
             this.createProfileModal();
-        } else {
-            document.getElementById('profile-modal').classList.remove('hidden');
+            profileModal = document.getElementById('profile-modal');
+        }
+
+        if (profileModal) {
+            profileModal.classList.remove('hidden');
             await this.loadProfileData();
         }
     }
@@ -88,28 +88,28 @@ class ProfileManager {
                     <button class="profile-modal-close" id="profile-modal-close">✕</button>
                 </div>
                 <div id="profile-error" class="error-message hidden"></div>
-                
+
                 <div class="profile-section">
                     <label>Имя пользователя</label>
                     <input type="text" id="profile-modal-username" disabled>
                 </div>
-                
+
                 <div class="profile-section">
                     <label>Номер телефона</label>
                     <input type="text" id="profile-modal-phone" disabled>
                 </div>
-                
+
                 <div class="profile-section">
                     <label>О себе</label>
                     <textarea id="profile-modal-bio" placeholder="Расскажите о себе..." maxlength="500"></textarea>
                     <div class="char-count" id="bio-char-count">0/500</div>
                 </div>
-                
+
                 <div class="profile-section">
                     <label>Аватар URL</label>
                     <input type="text" id="profile-modal-avatar" placeholder="Ссылка на аватар">
                 </div>
-                
+
                 <div class="profile-actions">
                     <button id="profile-save-btn" class="btn-primary">Сохранить</button>
                     <button id="profile-cancel-btn" class="btn-secondary">Отмена</button>
@@ -119,7 +119,6 @@ class ProfileManager {
 
         document.body.appendChild(modal);
         this.setupProfileModalEvents();
-        this.loadProfileData();
     }
 
     setupProfileModalEvents() {

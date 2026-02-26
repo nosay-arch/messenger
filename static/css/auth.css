@@ -2,7 +2,7 @@
 .auth-overlay {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -34,7 +34,7 @@
 .auth-card-title {
     margin-bottom: 8px;
     font-size: 1.75rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--text);
     text-align: center;
 }
@@ -88,7 +88,7 @@
 .auth-card textarea:focus {
     border-color: var(--accent);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 3px rgba(73, 80, 87, 0.1);
     background: var(--panel);
 }
 
@@ -104,9 +104,9 @@
     text-align: center;
     padding: 10px 12px;
     border-radius: 6px;
-    background: rgba(239, 68, 68, 0.1);
+    background: rgba(220, 53, 69, 0.05);
     animation: shake 0.15s ease;
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    border: 1px solid rgba(220, 53, 69, 0.2);
     word-break: break-word;
 }
 
@@ -120,8 +120,7 @@
     display: none;
 }
 
-.auth-card .btn-primary,
-.auth-card .btn-secondary,
+/* Кнопки */
 .btn-primary,
 .btn-secondary {
     width: 100%;
@@ -136,36 +135,47 @@
     display: block;
 }
 
-.auth-card .btn-primary,
 .btn-primary {
     background: var(--accent);
     color: white;
 }
 
-.auth-card .btn-primary:hover:not(:disabled),
 .btn-primary:hover:not(:disabled) {
     background: var(--accent-dark);
-    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
-    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-1px);
 }
 
-.auth-card .btn-primary:active:not(:disabled),
 .btn-primary:active:not(:disabled) {
     transform: translateY(0);
 }
 
-.auth-card .btn-secondary,
 .btn-secondary {
     background: var(--card);
     color: var(--accent);
     border: 1.5px solid var(--border);
 }
 
-.auth-card .btn-secondary:hover:not(:disabled),
 .btn-secondary:hover:not(:disabled) {
     background: var(--panel);
     border-color: var(--accent);
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 8px 16px;
+    margin-top: 8px;
+    transition: color 0.2s;
+    width: 100%;
+    text-align: center;
+}
+.btn-link:hover {
+    color: var(--accent-dark);
+    text-decoration: underline;
 }
 
 .btn-full {
@@ -177,7 +187,7 @@ button:disabled {
     background: var(--text-muted);
     pointer-events: none;
     opacity: 0.5;
-    color: var(--text-disabled, #999);
+    color: white;
 }
 
 .hidden {
@@ -188,3 +198,4 @@ button:disabled {
 #code-step,
 #profile-step {
     animation: fadeIn 0.2s ease;
+}

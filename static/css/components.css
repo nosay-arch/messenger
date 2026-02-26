@@ -1,4 +1,6 @@
-/* components.css - Updated with unified light design */
+/* components.css */
+
+/* Кнопка меню пользователя */
 .user-menu-button {
     background: none;
     border: none;
@@ -14,17 +16,12 @@
     transition: all 0.15s;
 }
 
-.btn {
-    border-radius: 6px;
-    transition: background 0.12s ease, transform 0.06s ease;
-    font-weight: 600;
-}
-
 .user-menu-button:hover {
     background: var(--card);
     color: var(--accent);
 }
 
+/* Попап пользователя */
 .user-popup {
     position: absolute;
     top: calc(100% + 8px);
@@ -73,11 +70,12 @@
 .popup-item i { width: 16px; color: var(--text-muted); font-size: 0.9rem; }
 .popup-item:hover { background: var(--card); color: var(--text); }
 .popup-item:hover i { color: var(--accent); }
-.popup-item.logout:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+.popup-item.logout:hover { background: rgba(220, 53, 69, 0.05); color: var(--danger); }
 .popup-item.logout:hover i { color: var(--danger); }
 .popup-footer { padding: 6px 12px; text-align: center; }
 .popup-version { font-size: 0.6rem; color: var(--text-muted); }
 
+/* Поиск */
 #sidebar-user-search {
     width: 100%;
     padding: 8px 12px;
@@ -90,7 +88,7 @@
     transition: all 0.15s;
 }
 
-#sidebar-user-search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+#sidebar-user-search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(73, 80, 87, 0.1); }
 #sidebar-user-search::placeholder { color: var(--text-muted); }
 
 .search-results {
@@ -124,6 +122,7 @@
 .search-results .result-item:hover{ background: var(--card); color: var(--text); }
 .search-results .empty-message { padding: 12px; color: var(--text-muted); text-align: center; font-size: 0.85rem; }
 
+/* Элемент чата в списке */
 .chat-item {
     padding: 8px 10px;
     border-radius: 6px;
@@ -155,7 +154,7 @@
     flex-shrink: 0;
 }
 
-.chat-item.active .chat-avatar { background: rgba(255, 255, 255, 0.25); }
+.chat-item.active .chat-avatar { background: rgba(255, 255, 255, 0.2); }
 .chat-info { flex: 1; overflow: hidden; }
 
 .chat-name {
@@ -173,6 +172,7 @@
 .chat-time { font-size: 0.65rem; color: var(--text-muted); }
 .unread-badge { background: var(--accent); color: white; border-radius: 4px; padding: 2px 6px; font-size: 0.65rem; font-weight: 600; min-width: 18px; text-align: center; }
 
+/* Индикатор печатания */
 .typing-indicator { display: flex; gap: 3px; align-items: center; margin-left: 8px; }
 .typing-indicator span { width: 5px; height: 5px; border-radius: 1px; background: var(--text-muted); animation: typing 1.2s infinite; }
 .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
@@ -180,8 +180,16 @@
 
 @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.3; } 30% { transform: translateY(-3px); opacity: 1; } }
 
-/* MESSAGES */
-.message { display: flex; margin-bottom: 4px; animation: messageFade 0.2s ease; max-width: 800px; margin-left: auto; margin-right: auto; width: 100%; }
+/* Сообщения */
+.message {
+    display: flex;
+    margin-bottom: 4px;
+    animation: messageFade 0.2s ease;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+}
 @keyframes messageFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); }}
 .message.own { justify-content: flex-end; }
 .message.other { justify-content: flex-start; }
@@ -233,6 +241,7 @@
 .message.other.same-user-message { margin-top: 2px; }
 .message.other.same-user-message .message-content { margin-left: 40px; }
 
+/* Меню действий над сообщением */
 .message-actions {
     cursor: pointer;
     padding: 4px;
@@ -252,7 +261,7 @@
     margin-bottom: 2px;
 }
 
-.message-actions:hover { background: rgba(59, 130, 246, 0.1); color: var(--accent); }
+.message-actions:hover { background: rgba(73, 80, 87, 0.1); color: var(--accent); }
 .message:hover .message-actions { opacity: 1; }
 .message.own { display: flex; align-items: flex-end; }
 .message.own .bubble { margin-right: 4px; }
@@ -292,32 +301,9 @@
 .message-actions-menu button:last-child { border-bottom: none; }
 .message-actions-menu button:hover { background: var(--card); color: var(--accent); }
 .message-actions-menu button.delete-message { color: var(--danger); }
-.message-actions-menu button.delete-message:hover { background: rgba(239, 68, 68, 0.1); }
+.message-actions-menu button.delete-message:hover { background: rgba(220, 53, 69, 0.05); }
 
-@media (max-width: 768px) {
-    .message-actions { opacity: 1 !important; background: rgba(59, 130, 246, 0.05); }
-    .message .bubble { max-width: 85%; font-size: 0.9rem; padding: 8px 12px; }
-    .message-content { max-width: 85%; }
-    .message.other.same-user-message .message-content { margin-left: 32px; }
-    .message-actions-menu {
-        position: fixed;
-        top: auto;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%) scale(0.95);
-        width: calc(100% - 40px);
-        max-width: 280px;
-    }
-    .message-actions-menu.show { transform: translateX(-50%) scale(1); }
-    .message.own .message-actions-menu { right: auto; top: auto; margin-top: 0; }
-}
-
-@media (max-width: 480px) {
-    .message .bubble { max-width: 90%; padding: 6px 10px; font-size: 0.9rem; }
-    .message-content { max-width: 90%; }
-    .message.other.same-user-message .message-content { margin-left: 32px; }
-}
-
+/* Поле ввода и кнопка отправки */
 .input-area input {
     flex: 1;
     padding: 10px 14px;
@@ -332,7 +318,7 @@
     font-size: 0.95rem;
 }
 
-.input-area input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+.input-area input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(73, 80, 87, 0.1); }
 .input-area input::placeholder { color: var(--text-muted); }
 
 .input-area button {
@@ -351,10 +337,11 @@
     font-weight: 600;
 }
 
-.input-area button:hover:not(:disabled) { background: var(--accent-dark); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+.input-area button:hover:not(:disabled) { background: var(--accent-dark); box-shadow: var(--shadow-lg); }
 .input-area button:active:not(:disabled) { transform: scale(0.98); }
 .input-area button:disabled { background: var(--text-muted); cursor: not-allowed; opacity: 0.6; }
 
+/* Модальные окна */
 .modal {
     display: none;
     position: fixed;
@@ -363,7 +350,7 @@
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: rgba(0, 0, 0, 0.2);
     animation: fadeIn 0.2s ease;
 }
 
@@ -389,6 +376,7 @@
 .close { color: var(--text-muted); float: right; font-size: 24px; font-weight: 300; cursor: pointer; line-height: 1; transition: color 0.1s; }
 .close:hover { color: var(--accent); }
 
+/* Групповые модалки */
 .group-creation { display: flex; flex-direction: column; gap: 16px; }
 
 .step-indicator { display: flex; justify-content: space-around; margin-bottom: 4px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
@@ -410,7 +398,7 @@
     color: var(--text);
 }
 
-#group-user-search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+#group-user-search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(73, 80, 87, 0.1); }
 
 .selected-users-list { display: flex; flex-wrap: wrap; gap: 6px; min-height: 40px; padding: 8px; background: var(--card); border-radius: 6px; margin-top: 8px; }
 
@@ -438,7 +426,7 @@
 .step-actions button:active { transform: scale(0.98); }
 
 #group-next-step, #create-group-btn { background: var(--accent); color: white; }
-#group-next-step:hover:not(:disabled), #create-group-btn:hover:not(:disabled) { background: var(--accent-dark); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+#group-next-step:hover:not(:disabled), #create-group-btn:hover:not(:disabled) { background: var(--accent-dark); box-shadow: var(--shadow-lg); }
 #group-next-step:disabled, #create-group-btn:disabled { background: var(--text-muted); cursor: not-allowed; opacity: 0.6; }
 
 #group-back-step { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
@@ -456,17 +444,17 @@
     color: var(--text);
 }
 
-#group-name:focus, #group-description:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+#group-name:focus, #group-description:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(73, 80, 87, 0.1); }
 
 .members-list { max-height: 200px; overflow-y: auto; margin: 12px 0; border: 1px solid var(--border); border-radius: 6px; }
 .member-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text); }
 .member-item:last-child { border-bottom: none; }
 
 .remove-member-btn { background: transparent; color: var(--text-muted); border: 1px solid var(--border); padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.1s; }
-.remove-member-btn:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: var(--danger); }
+.remove-member-btn:hover { background: rgba(220, 53, 69, 0.05); color: var(--danger); border-color: var(--danger); }
 
 #leave-group-btn { margin-top: 12px; background: transparent; color: var(--text-muted); border: 1px solid var(--border); width: 100%; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.1s; }
-#leave-group-btn:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: var(--danger); }
+#leave-group-btn:hover { background: rgba(220, 53, 69, 0.05); color: var(--danger); border-color: var(--danger); }
 
 .add-member-section { margin-top: 12px; position: relative; }
 
@@ -480,7 +468,7 @@
     color: var(--text);
 }
 
-#group-info-search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+#group-info-search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(73, 80, 87, 0.1); }
 
 .modal-content input[type="text"].edit-message-input {
     width: 100%;
@@ -493,29 +481,29 @@
     color: var(--text);
 }
 
-.modal-content input[type="text"].edit-message-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+.modal-content input[type="text"].edit-message-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(73, 80, 87, 0.1); }
 
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
 
 .modal-btn { padding: 8px 16px; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.1s; }
 
 .modal-btn-primary { background: var(--accent); color: white; }
-.modal-btn-primary:hover { background: var(--accent-dark); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+.modal-btn-primary:hover { background: var(--accent-dark); box-shadow: var(--shadow-lg); }
 
 .modal-btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
 .modal-btn-secondary:hover { background: var(--card); }
 
 .modal-btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--border); }
-.modal-btn-danger:hover { background: rgba(239, 68, 68, 0.1); border-color: var(--danger); }
+.modal-btn-danger:hover { background: rgba(220, 53, 69, 0.05); border-color: var(--danger); }
 
-/* Profile Modal Styles */
+/* Профиль */
 .profile-modal {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -523,9 +511,7 @@
     animation: fadeIn 0.2s ease;
 }
 
-.profile-modal.hidden {
-    display: none;
-}
+.profile-modal.hidden { display: none; }
 
 .profile-modal-content {
     width: 90%;
@@ -606,7 +592,7 @@
 .profile-section textarea:focus {
     border-color: var(--accent);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 3px rgba(73, 80, 87, 0.1);
 }
 
 .profile-section input:disabled {
@@ -652,7 +638,7 @@
 
 .btn-primary:hover:not(:disabled) {
     background: var(--accent-dark);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    box-shadow: var(--shadow-lg);
 }
 
 .btn-secondary {
@@ -674,27 +660,26 @@
 
 #profile-error {
     color: var(--danger);
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: rgba(220, 53, 69, 0.05);
+    border: 1px solid rgba(220, 53, 69, 0.2);
     padding: 10px 12px;
     border-radius: 6px;
     margin-bottom: 16px;
     font-size: 0.9rem;
 }
 
-#profile-error.hidden {
-    display: none;
-}
+#profile-error.hidden { display: none; }
 
 @media (max-width: 768px) {
     .modal-actions { flex-direction: column; }
     .modal-btn { width: 100%; }
-    
+
     .profile-modal-content {
         width: 95%;
         padding: 24px;
     }
-    
+
     .profile-actions {
         flex-direction: column;
     }
+}

@@ -1,97 +1,56 @@
-from flask import Blueprint, request, jsonify, current_app, render_template
+from flask import Blueprint, render_template, request, jsonify, current_app
 from flask_login import login_user, logout_user, login_required, current_user
-from app.exceptions.auth_errors import (
-    ValidationError,
-    UsernameAlreadyExistsError,
-    RateLimitExceededError
-)
+from app.schemas import UserRegisterSchema, UserLoginSchema
+from app.utils.decorators import handle_errors
 
-bp = Blueprint('auth', __name__)
+bp = Blueprint('auth', __name__, url_prefix='/auth')
 
-@bp.route('/login')
+@bp.route('/login', methods=['GET'])
 def login_page():
-    """Страница логина."""
     return render_template('auth.html')
+
+@bp.route('/login', methods=['POST'])
+@handle_errors
+def login():
+    data = request.get_json()
+    schema = UserLoginSchema()
+    validated = schema.load(data)
+
+    user_data = current_app.container.auth_service.login(
+        username=validated['username'],
+        password=validated['password'],
+        ip=request.remote_addr
+    )
+    user = current_app.container.user_repo.get_by_id(user_data['id'])
+    login_user(user)
+    return jsonify(user_data), 200
+
+@bp.route('/register', methods=['POST'])
+@handle_errors
+def register():
+    data = request.get_json()
+    schema = UserRegisterSchema()
+    validated = schema.load(data)
+
+    user_data = current_app.container.auth_service.register(
+        username=validated['username'],
+        password=validated['password'],
+        ip=request.remote_addr
+    )
+    return jsonify(user_data), 201
 
 @bp.route('/logout', methods=['POST'])
 @login_required
+@handle_errors
 def logout():
-    from app.logging import log_user_logout
-    log_user_logout(current_user.id, current_user.username)
     logout_user()
-    return jsonify({'success': True}), 200
+    return jsonify({"message": "Logged out"}), 200
 
-@bp.route('/send-code', methods=['POST'])
-def send_code():
-    data = request.get_json()
-    phone = data.get('phone', '').strip()
-    ip = request.remote_addr
-    
-    try:
-        result = current_app.container.auth_service.send_code(phone, ip)
-        return jsonify({
-            'success': True,
-            'message': result['message'],
-            'masked_phone': result['masked_phone']
-        }), 200
-    except ValidationError as e:
-        return jsonify({'error': str(e)}), 400
-    except RateLimitExceededError as e:
-        return jsonify({'error': str(e)}), 429
-    except Exception as e:
-        current_app.logger.exception("Send code error")
-        return jsonify({'error': 'Internal server error'}), 500
-
-@bp.route('/verify-code', methods=['POST'])
-def verify_code():
-    data = request.get_json()
-    phone = data.get('phone', '').strip()
-    code = data.get('code', '').strip()
-    ip = request.remote_addr
-    
-    try:
-        result = current_app.container.auth_service.verify_code(phone, code, ip)
-        
-        if result['exists']:
-            from app.models.user import User
-            user = User.query.get(result['user_id'])
-            login_user(user, remember=True)
-        
-        return jsonify({
-            'success': True,
-            'exists': result['exists'],
-            'user_id': result.get('user_id'),
-            'username': result.get('username'),
-            'phone': result['phone'],
-            'message': result.get('message')
-        }), 200
-    except Exception as e:
-        current_app.logger.exception(f"Verify code error: {e}")
-        return jsonify({'error': str(e)}), 400
-
-@bp.route('/register-by-phone', methods=['POST'])
-def register_by_phone():
-    data = request.get_json()
-    phone = data.get('phone', '').strip()
-    username = data.get('username', '').strip()
-    
-    try:
-        result = current_app.container.auth_service.register_by_phone(phone, username)
-        
-        from app.models.user import User
-        user = User.query.get(result['id'])
-        login_user(user, remember=True)
-        
-        return jsonify({
-            'success': True,
-            'user_id': result['id'],
-            'username': result['username'],
-            'phone': result['phone']
-        }), 200
-    except ValidationError as e:
-        return jsonify({'error': str(e)}), 400
-    except UsernameAlreadyExistsError as e:
-        return jsonify({'error': str(e)}), 409
-    except Exception as e:
-        current_app.logger.exception("Register by phone error")
-        return jsonify({'error': 'Internal server error'}), 500
+@bp.route('/me', methods=['GET'])
+@login_required
+@handle_errors
+def me():
+    return jsonify({
+        "id": current_user.id,
+        "username": current_user.username
+    }), 200

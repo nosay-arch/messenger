@@ -7,10 +7,8 @@ class ValidationError(AuthError):
     pass
 
 class UserNotFoundError(AuthError):
-    def __init__(self, message, not_confirmed=False, email=None):
+    def __init__(self, message):
         super().__init__(message)
-        self.not_confirmed = not_confirmed
-        self.email = email
 
 class InvalidCredentialsError(AuthError):
     pass

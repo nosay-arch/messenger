@@ -12,49 +12,46 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}">
 </head>
 <body>
-    <div class="auth-overlay">
+    <div class="auth-overlay" style="position: fixed; background: var(--bg);">
         <div class="auth-card">
             <input type="hidden" id="csrf-token" value="{{ csrf_token() }}">
 
-            <div id="phone-step">
-                <h2 class="auth-card-title">Добро пожаловать</h2>
-                <p class="auth-card-subtitle">Войдите с помощью номера телефона</p>
-                <div id="phone-error" class="error-message hidden"></div>
-                <div class="input-group">
-                    <i class="fas fa-phone"></i>
-                    <input type="tel" id="phone-input" placeholder="+7 (900) 123-45-67" autocomplete="off">
-                </div>
-                <button id="phone-send-btn" class="btn-primary btn-full">Отправить код</button>
+            <div class="auth-header">
+                <h2 id="auth-title" class="auth-card-title">Вход</h2>
+                <p id="auth-subtitle" class="auth-card-subtitle">Введите свои данные</p>
             </div>
 
-            <div id="code-step" class="hidden">
-                <h2 class="auth-card-title">Проверка кода</h2>
-                <p class="auth-card-subtitle">Код отправлен на <span class="masked-phone"></span></p>
-                <div id="code-error" class="error-message hidden"></div>
+            <div id="auth-error" class="error-message hidden"></div>
+
+            <div class="auth-fields">
+                <div class="input-group" id="login-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="auth-login" placeholder="Имя пользователя" autocomplete="username">
+                </div>
+
+                <div class="input-group hidden" id="username-group">
+                    <i class="fas fa-user-plus"></i>
+                    <input type="text" id="auth-username" placeholder="Имя (только для регистрации)" autocomplete="off">
+                </div>
+
                 <div class="input-group">
                     <i class="fas fa-lock"></i>
-                    <input type="text" id="code-input" placeholder="000000" maxlength="6" autocomplete="off" inputmode="numeric">
+                    <input type="password" id="auth-password" placeholder="Пароль" autocomplete="current-password">
                 </div>
-                <button id="code-verify-btn" class="btn-primary btn-full">Проверить</button>
-                <button id="code-back-btn" class="btn-secondary btn-full">← Назад</button>
+
+                <div class="input-group hidden" id="password-confirm-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="auth-password-confirm" placeholder="Подтвердите пароль" autocomplete="new-password">
+                </div>
             </div>
 
-            <div id="profile-step" class="hidden">
-                <h2 class="auth-card-title">Создание профиля</h2>
-                <div id="profile-error" class="error-message hidden"></div>
-                <div class="input-group">
-                    <i class="fas fa-user"></i>
-                    <input type="text" id="profile-username-input" placeholder="Имя пользователя" autocomplete="off">
-                </div>
-                <button id="profile-register-btn" class="btn-primary btn-full">Создать профиль</button>
-                <button id="profile-back-btn" class="btn-secondary btn-full">← Назад</button>
-            </div>
+            <button id="auth-submit" class="btn-primary btn-full">Войти</button>
+            <button id="auth-toggle" class="btn-link">Нет аккаунта? Зарегистрироваться</button>
         </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
     <script>
-        // Простая инициализация Auth класса для страницы логина
         class SimpleAuthApp {
             constructor() {
                 this.currentUserId = null;
@@ -62,8 +59,6 @@
                 this.auth = new Auth(this);
             }
         }
-
-        // Инициализируем приложение
         new SimpleAuthApp();
     </script>
 </body>

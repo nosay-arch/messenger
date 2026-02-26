@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from redis import Redis
 
 from app.services.chat_service import ChatService
-from app.integrations.sms_provider import GenericHttpSmsProvider
 from app.repositories import (
     UserRepository,
     ChatRepository,
@@ -23,7 +22,7 @@ from app.services import (
 class Container:
     """DI контейнер с управлением всеми зависимостями."""
     
-    def __init__(self, db_session: Session, redis_client: Redis, config: Dict[str, Any], app=None) -> None:
+    def __init__(self, db_session: Session, redis_client: Redis, config: Dict[str, Any]) -> None:
         self.db_session = db_session
         self.redis_client = redis_client
         self.config = config
@@ -34,15 +33,11 @@ class Container:
         self.message_repo = MessageRepository(db_session)
         self.last_read_repo = LastReadRepository(db_session)
 
-        # SMS провайдер
-        sms_provider = GenericHttpSmsProvider(app)
-
         # Сервисы
         self.auth_service = AuthService(
             user_repo=self.user_repo,
             redis_client=self.redis_client,
-            config=self.config,
-            sms_provider=sms_provider
+            config=self.config
         )
         self.user_service = UserService(
             user_repo=self.user_repo

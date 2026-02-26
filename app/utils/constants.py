@@ -32,12 +32,12 @@ class SocketEvent:
     TYPING = "typing"
     MARK_READ = "mark_read"
     UNREAD_COUNTS = "unread_counts"
-    
+
     # Presence
     USER_ONLINE = "user_online"
     USER_OFFLINE = "user_offline"
     CHAT_LIST = "chat_list"
-    
+
     # Groups
     GROUP_CREATED = "group_created"
     GROUP_INFO = "group_info"
@@ -45,7 +45,7 @@ class SocketEvent:
     ADDED_TO_GROUP = "added_to_group"
     REMOVED_FROM_GROUP = "removed_from_group"
     LEFT_GROUP = "left_group"
-    
+
     # Errors
     ERROR = "error"
 
@@ -57,8 +57,7 @@ class ValidationRules:
     MESSAGE_MAX_LEN = 500
     GROUP_NAME_MAX_LEN = 100
     DESCRIPTION_MAX_LEN = 200
-    
-    # Reserved usernames
+
     RESERVED_USERNAMES = {"admin", "root", "system", "support", "test", "api", "administrator"}
 
 

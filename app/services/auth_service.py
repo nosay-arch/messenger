@@ -25,13 +25,11 @@ class AuthService:
         self,
         user_repo: UserRepository,
         redis_client: Redis,
-        config: Dict[str, Any],
-        sms_provider: Any
+        config: Dict[str, Any]
     ) -> None:
         self.user_repo = user_repo
         self.redis = redis_client
         self.config = config
-        self.sms_provider = sms_provider
 
     def _check_rate_limit(self, key: str, max_attempts: int, period: int) -> bool:
         """Проверка rate limit."""
