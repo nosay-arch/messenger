@@ -1,6 +1,6 @@
-"""Общие decorators для приложения."""
 from functools import wraps
 from typing import Callable, Any
+
 from flask import jsonify, current_app
 from flask_login import current_user
 
@@ -20,9 +20,9 @@ def handle_errors(f: Callable) -> Callable:
                 MessageNotFoundError,
                 MessageEditTimeExpiredError
             )
-            
+
             current_app.logger.exception(f"Error in {f.__name__}")
-            
+
             if isinstance(e, ValidationError):
                 return jsonify({"error": str(e)}), 400
             elif isinstance(e, RateLimitExceededError):
@@ -37,7 +37,7 @@ def handle_errors(f: Callable) -> Callable:
                 return jsonify({"error": str(e)}), 400
             else:
                 return jsonify({"error": "Internal server error"}), 500
-    
+
     return wrapper
 
 
@@ -48,7 +48,7 @@ def rate_limit_action(action: str) -> Callable:
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             from app.exceptions.auth_errors import RateLimitExceededError
             from app.utils.rate_limit import check_rate_limit
-            
+
             if check_rate_limit(current_user.username, action, current_app.container.redis_client):
                 raise RateLimitExceededError("Too many requests")
             return f(*args, **kwargs)

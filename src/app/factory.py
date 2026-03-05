@@ -1,17 +1,17 @@
 import os
-
 import redis
-from redis import ConnectionPool
 from typing import Optional
+from redis import ConnectionPool
 
 from flask import Flask, jsonify, request, redirect, url_for
 
-from app.models.user import User
 from app.config import DevelopmentConfig, ProductionConfig, TestingConfig
 from app.extensions import db, login_manager, socketio, csrf
-from app.di import Container
-from app.utils.logging import init_logging
 from app.socket import register_socket_handlers
+from app.utils.logging import init_logging
+from app.models.user import User
+from app.di import Container
+
 from app.exceptions.auth_errors import (
     UserNotFoundError,
     UsernameAlreadyExistsError,
@@ -38,7 +38,6 @@ def create_app(config_object: Optional[object] = None) -> Flask:
         static_folder="../static",
     )
 
-    # Загрузка конфигурации
     if config_object is None:
         env = os.getenv("FLASK_ENV", "development")
         if env == "production":
@@ -47,13 +46,12 @@ def create_app(config_object: Optional[object] = None) -> Flask:
             config_object = TestingConfig
         else:
             config_object = DevelopmentConfig
-    
+
     app.config.from_object(config_object)
-    app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB
+    app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 
     init_logging(app)
 
-    # Инициализация расширений
     db.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = "auth.login_page"
@@ -61,7 +59,6 @@ def create_app(config_object: Optional[object] = None) -> Flask:
 
     @login_manager.unauthorized_handler
     def unauthorized():
-        # Для API и XHR возвращаем JSON, для браузера — редирект на страницу логина
         if request.path.startswith("/api") or request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return jsonify({"error": "Unauthorized"}), 401
         return redirect(url_for(login_manager.login_view))
@@ -70,7 +67,6 @@ def create_app(config_object: Optional[object] = None) -> Flask:
     def load_user(user_id: str) -> Optional[User]:
         return db.session.get(User, int(user_id))
 
-    # Инициализация Redis
     pool = ConnectionPool.from_url(
         app.config["REDIS_URL"],
         max_connections=20,
@@ -83,23 +79,19 @@ def create_app(config_object: Optional[object] = None) -> Flask:
     if app.testing:
         try:
             redis_client.flushdb()
-        except Exception:  # pragma: no cover
+        except Exception:
             app.logger.exception("Failed to flush test Redis DB")
 
-    # Создание контейнера зависимостей
     app.container = Container(db.session, redis_client, app.config)
 
-    # Регистрация Web UI и legacy API (используются фронтом из `static/`)
     from app.controllers import auth_controller, pages_controller, api_controller
     app.register_blueprint(auth_controller.bp)
     app.register_blueprint(pages_controller.bp)
     app.register_blueprint(api_controller.bp)
 
-    # Регистрация новых API endpoints
     from app.api import register_api_routes
     register_api_routes(app)
 
-    # Инициализация Socket.IO
     socketio.init_app(
         app,
         cors_allowed_origins=app.config["CORS_ORIGINS"],
@@ -108,11 +100,9 @@ def create_app(config_object: Optional[object] = None) -> Flask:
     )
     register_socket_handlers(socketio, app.container)
 
-    # Регистрация обработчиков ошибок и CORS
     register_custom_error_handlers(app)
     register_cors(app)
 
-    # Инициализация базы данных (удобно для dev/testing; для prod лучше миграции)
     if app.debug or app.testing:
         with app.app_context():
             db.create_all()
@@ -185,4 +175,3 @@ def register_cors(app: Flask):
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
         response.headers.add('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
         return response
-

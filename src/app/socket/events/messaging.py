@@ -1,8 +1,8 @@
-# app/socket/events/messaging.py
-from typing import Any
 import logging
+
 from flask_socketio import emit, join_room, SocketIO
 from flask_login import current_user
+
 from app.utils.rate_limit import check_rate_limit
 from app.utils.constants import SocketEvent, RateLimitAction
 from app.exceptions.chat_errors import ChatNotFoundError, AccessDeniedError
@@ -41,10 +41,13 @@ def register_messaging_handlers(socketio: SocketIO, container: Container) -> Non
             message_service.mark_read(current_user.id, chat_id)
             counts = chat_service.get_unread_counts(current_user.id)
             emit(SocketEvent.UNREAD_COUNTS, counts)
+
         except AccessDeniedError:
             emit(SocketEvent.ERROR, {"message": "Access denied"})
+
         except ChatNotFoundError:
             emit(SocketEvent.ERROR, {"message": "Chat not found"})
+
         except Exception as e:
             logger.exception("Error in join_chat")
             emit(SocketEvent.ERROR, {"message": "Internal error"})

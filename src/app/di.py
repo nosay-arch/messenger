@@ -27,13 +27,11 @@ class Container:
         self.redis_client = redis_client
         self.config = config
 
-        # Репозитории
         self.user_repo = UserRepository(db_session)
         self.chat_repo = ChatRepository(db_session)
         self.message_repo = MessageRepository(db_session)
         self.last_read_repo = LastReadRepository(db_session)
 
-        # Сервисы
         self.auth_service = AuthService(
             user_repo=self.user_repo,
             redis_client=self.redis_client,

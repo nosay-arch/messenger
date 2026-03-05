@@ -8,7 +8,6 @@ load_dotenv()
 class BaseConfig:
     """Базовая конфигурация, общая для всех окружений."""
 
-    # Database
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL",
         "sqlite:///messenger.db"
@@ -25,31 +24,24 @@ class BaseConfig:
         ),
     }
 
-    # Security
     SECRET_KEY = os.getenv("SECRET_KEY") or "dev-secret-key-change-me"
 
-    # URLs
     BASE_URL = os.getenv("BASE_URL") or "http://localhost:5000"
 
-    # Redis
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
-    # Session
     SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "True").lower() == "true"
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Strict"
 
-    # CORS
     CORS_ORIGINS = [
         origin.strip()
         for origin in os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
     ]
 
-    # CSRF
     WTF_CSRF_ENABLED = True
     WTF_CSRF_TIME_LIMIT = None
 
-    # Rate Limits
     RATE_LIMITS = {
         "new_message": 4,
         "create_private_chat": 1,
@@ -58,11 +50,7 @@ class BaseConfig:
         "mark_read": 5,
     }
     LOGIN_RATE_LIMIT_ATTEMPTS = 10
-    LOGIN_RATE_LIMIT_PERIOD = 900  # 15 minutes
-
-    # Phone verification
-    PHONE_CODE_EXPIRATION = 300
-    PHONE_SESSION_EXPIRATION = 1800
+    LOGIN_RATE_LIMIT_PERIOD = 900
 
 
 class DevelopmentConfig(BaseConfig):

@@ -1,8 +1,11 @@
+import uuid
 from typing import Optional, List, Tuple, Dict
+
 from sqlalchemy import select, case, func
 from sqlalchemy.exc import IntegrityError
-import uuid
+
 from .base import BaseRepository
+
 from app.models.chat import Chat
 from app.models.user import User
 from app.models.chat_participant import ChatParticipant
@@ -101,7 +104,6 @@ class ChatRepository(BaseRepository):
             self.session.flush()
         except IntegrityError:
             self.session.rollback()
-            # Если участник уже добавлен, считаем операцию успешной
             return
 
     def remove_participant(self, user_id: int, chat_id: str):

@@ -1,8 +1,11 @@
-from typing import Optional, List, Dict
+from typing import Optional, List
 from datetime import datetime
+
 from sqlalchemy.orm import joinedload
 from sqlalchemy import func
+
 from .base import BaseRepository
+
 from app.models.message import Message
 from app.models.last_read import LastRead
 
@@ -21,20 +24,20 @@ class MessageRepository(BaseRepository):
 
     def get_chat_history(self, chat_id: str, limit: int = 100, offset: int = 0) -> List[Message]:
         return self.session.query(Message).filter_by(chat_id=chat_id).options(
-            joinedload(Message.user)
+            joinedload(Message.user_id)
         ).order_by(Message.timestamp.desc()).limit(limit).offset(offset).all()
 
     def count_unread_for_user(self, user_id: int, chat_ids: list, redis_client=None) -> dict:
         if not chat_ids:
             return {}
-        
+
         cache_key = f"unread:{user_id}"
         if redis_client:
             cached = redis_client.get(cache_key)
             if cached:
                 import json
                 return json.loads(cached)
-        
+
         from sqlalchemy import case
         results = self.session.query(
             Message.chat_id,
@@ -46,15 +49,15 @@ class MessageRepository(BaseRepository):
             Message.chat_id.in_(chat_ids),
             Message.is_deleted == False
         ).group_by(Message.chat_id).all()
-        
+
         unread_counts = {chat_id: 0 for chat_id in chat_ids}
         for chat_id, unread_count in results:
             unread_counts[chat_id] = unread_count or 0
-        
+
         if redis_client:
             import json
             redis_client.setex(cache_key, 30, json.dumps(unread_counts))
-        
+
         return unread_counts
 
     def delete_message(self, message_id: int) -> bool:

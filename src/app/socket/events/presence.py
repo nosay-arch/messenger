@@ -1,10 +1,11 @@
-"""Socket.IO обработчики для presence (онлайн статус)."""
 from typing import Any, Callable
 from functools import wraps
 import logging
+
 from flask import request
 from flask_socketio import emit, disconnect, SocketIO
 from flask_login import current_user
+
 from app.utils.constants import SocketEvent
 from app.di import Container
 
@@ -42,15 +43,12 @@ def register_presence_handlers(socketio: SocketIO, container: Container) -> None
             )
             logger.info(f"User connected: {current_user.username}")
 
-            # Отправить список чатов
             chats = chat_service.get_user_chats(current_user.id)
             emit(SocketEvent.CHAT_LIST, chats)
-            
-            # Отправить количество непрочитанных
+
             counts = container.message_service.get_unread_counts(current_user.id)
             emit(SocketEvent.UNREAD_COUNTS, counts)
 
-            # Уведомить других онлайн пользователей
             online_users = presence_service.get_online_users_in_chats(current_user.id)
             for username in online_users:
                 sid = container.redis_client.get(f"online:{username}")
@@ -77,7 +75,6 @@ def register_presence_handlers(socketio: SocketIO, container: Container) -> None
             presence_service.user_disconnected(username)
             logger.info(f"User disconnected: {username}")
 
-            # Уведомить других что пользователь офлайн
             online_users = presence_service.get_online_users_in_chats(current_user.id)
             for other_username in online_users:
                 sid = container.redis_client.get(f"online:{other_username}")
@@ -88,7 +85,6 @@ def register_presence_handlers(socketio: SocketIO, container: Container) -> None
                         room=sid
                     )
 
-            # Отправить that user stopped typing в все чаты
             user_chat_ids = container.chat_repo.get_user_chat_ids(current_user.id)
             for chat_id in user_chat_ids:
                 socketio.emit(
