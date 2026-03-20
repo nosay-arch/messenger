@@ -1,0 +1,34 @@
+<div id="profile-modal-template" style="display: none;">
+    <div class="profile-modal" id="profile-modal">
+        <div class="profile-modal-content">
+            <div class="profile-modal-header">
+                <h3>Мой профиль</h3>
+                <button class="profile-modal-close">✕</button>
+            </div>
+            <div id="profile-error" class="error-message hidden"></div>
+            <div class="profile-section" style="text-align: center;">
+                <div id="profile-avatar-container" class="profile-avatar-large">
+                    <img id="profile-avatar-img" src="" alt="avatar" style="display: none;">
+                    <div id="profile-avatar-placeholder"></div>
+                </div>
+                <label for="avatar-upload" class="btn-secondary" style="margin-top: 8px; display: inline-block;">
+                    Загрузить фото
+                </label>
+                <input type="file" id="avatar-upload" accept="image/png, image/jpeg, image/gif" style="display: none;">
+            </div>
+            <div class="profile-section">
+                <label>Имя пользователя</label>
+                <input type="text" id="profile-modal-username" disabled>
+            </div>
+            <div class="profile-section">
+                <label>О себе</label>
+                <textarea id="profile-modal-bio" placeholder="Расскажите о себе..." maxlength="500"></textarea>
+                <div class="char-count" id="bio-char-count">0/500</div>
+            </div>
+            <div class="profile-actions">
+                <button id="profile-save-btn" class="btn-primary">Сохранить</button>
+                <button id="profile-cancel-btn" class="btn-secondary">Отмена</button>
+            </div>
+        </div>
+    </div>
+</div>

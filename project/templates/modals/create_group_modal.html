@@ -1,0 +1,36 @@
+<div id="create-group-modal-template" style="display: none;">
+    <div class="modal" id="create-group-modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="group-creation">
+                <div class="step-indicator">
+                    <div class="step active" data-step="1">1. Участники</div>
+                    <div class="step" data-step="2">2. Название</div>
+                </div>
+                <div class="step-content" id="group-step-1">
+                    <h3>Выберите участников</h3>
+                    <div class="user-search-area">
+                        <input type="text" id="group-user-search" placeholder="Поиск по имени..." autocomplete="off">
+                        <div id="group-search-results" class="search-results"></div>
+                    </div>
+                    <div class="selected-users">
+                        <h4>Выбранные участники:</h4>
+                        <div id="selected-users-list" class="selected-users-list"></div>
+                    </div>
+                    <div class="step-actions">
+                        <button id="group-next-step" disabled>Далее</button>
+                    </div>
+                </div>
+                <div class="step-content hidden" id="group-step-2">
+                    <h3>Название группы</h3>
+                    <input type="text" id="group-name" placeholder="Название" maxlength="100">
+                    <textarea id="group-description" placeholder="Описание (необязательно)" rows="3"></textarea>
+                    <div class="step-actions">
+                        <button id="group-back-step">Назад</button>
+                        <button id="create-group-btn" disabled>Создать</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
