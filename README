@@ -1,16 +1,17 @@
 Messenger App
 =============
 
-Messaging application with private and group chats, and live message delivery.
-Built as a modular component of a larger system.
+Messaging application with private and group chats, real-time message delivery,
+presence tracking, and avatar support.
+Built as a modular, service-oriented Flask application.
 
 Tech Stack
 ----------
 
-Backend: Flask, Flask-SocketIO, SQLAlchemy
+Backend:  Flask, Flask-SocketIO, Flask-Login, Flask-WTF, SQLAlchemy, Marshmallow
 Database: SQLite (development), PostgreSQL (production)
-Cache & real-time: Redis
-Frontend: Static HTML/JS served from static/
+Cache & real-time: Redis (session store, rate limiting, presence, message queue)
+Frontend: TypeScript compiled via Webpack, served as static files
 
 Getting Started
 ---------------
@@ -18,6 +19,7 @@ Getting Started
 Prerequisites
 
 - Python 3.9+
+- Node.js 18+ and npm (for frontend build)
 - Redis server running locally (or via Docker)
 
 Installation
@@ -30,21 +32,33 @@ Installation
    python -m venv venv
    source venv/bin/activate
 
-3. Install dependencies
+3. Install Python dependencies
    pip install -r requirements.txt
 
 4. Configure environment variables
    cp .env.example .env
    Edit .env if needed (see Configuration below).
 
-5. Start Redis server (if not already running)
-   - Using Docker:
-     `docker run --name redis -p 6379:6379 -d redis`
-   - Using local installation:
-     `redis-server`
+5. Build the frontend
+   cd frontend
+   npm install
+   npm run build
+   cd ..
 
-6. Run the application
+6. Start Redis server (if not already running)
+   - Using Docker:
+     docker run --name redis -p 6379:6379 -d redis
+   - Using local installation:
+     redis-server
+
+7. Run the application
    python run.py
+
+   Optional flags:
+     --debug          Enable debug mode
+     --host 0.0.0.0   Bind to all interfaces (default: 127.0.0.1)
+     --port 8080       Custom port (default: 5000)
+     --unsafe          Allow Werkzeug reloader in production
 
 The app will be available at http://localhost:5000.
 
@@ -53,11 +67,169 @@ Configuration
 
 Key environment variables (see .env.example for all options):
 
-FLASK_ENV - development, production, or testing (default: development)
-SECRET_KEY - secret key for sessions (change in production!) (default: dev-secret-key-change-me)
-DATABASE_URL - database connection string (default: sqlite:///messenger.db)
-REDIS_URL - Redis connection string (default: redis://localhost:6379/0)
-CORS_ORIGINS - comma-separated allowed origins (default: http://localhost:3000)
+FLASK_ENV          - development, production, or testing (default: development)
+SECRET_KEY         - secret key for sessions (change in production!)
+DATABASE_URL       - database connection string (default: sqlite:///instance/messenger.db)
+REDIS_URL          - Redis connection string (default: redis://localhost:6379/0)
+REDIS_URL_TEST     - Redis DB for tests (default: redis://localhost:6379/15)
+BASE_URL           - base URL of the application (default: http://localhost:5000)
+CORS_ORIGINS       - comma-separated allowed origins (default: http://localhost:3000)
+SESSION_COOKIE_SECURE - set to False in development (default: True)
+
+Rate limits (requests per second, configured in code):
+
+new_message        - 4 per second
+create_private_chat - 1 per second
+join_chat          - 3 per second
+typing             - 2 per second
+mark_read          - 5 per second
+login attempts     - 10 per 15 minutes per IP
+
+Project Structure
+-----------------
+
+project/
+  run.py                        Entry point; parses CLI args, checks Redis, starts server
+  requirements.txt              Python dependencies
+
+  app/
+    __init__.py                 Exposes create_app()
+    core/
+      config.py                 DevelopmentConfig / TestingConfig / ProductionConfig
+      extensions.py             Shared Flask extensions (db, login_manager, csrf, socketio)
+      factory.py                Application factory; wires extensions, blueprints, error handlers
+      di.py                     Dependency injection container (Container class)
+      logging.py                Structured audit logging helpers
+      base/
+        repository.py           Base repository with common DB helpers
+        schema.py               Base Marshmallow schema
+      exceptions/
+        base.py                 Base application exception
+        auth_errors.py          Auth-related exceptions (InvalidCredentials, RateLimit, etc.)
+        chat_errors.py          Chat-related exceptions (AccessDenied, MessageNotFound, etc.)
+      utils/
+        constants.py            Enums / constants (ChatType, ValidationRules, SocketEvent, etc.)
+        decorators.py           @handle_errors and @socket_authenticated decorators
+        rate_limit.py           Redis-backed per-user rate limiting for Socket.IO actions
+        validators.py           Input validation helpers (username, message text, file ext.)
+        helpers.py              Miscellaneous utility functions
+
+    models/
+      user.py                   User (id, username, password_hash, bio, avatar_url)
+      chat.py                   Chat (id, name, type: private|group, created_by, description)
+      chat_participant.py       ChatParticipant join table
+      private_chat.py           PrivateChat helper model
+      message.py                Message (id, chat_id, user_id, text, timestamp, edited, is_deleted)
+      last_read.py              LastRead (user_id, chat_id, last_message_id)
+
+    modules/
+      auth/
+        routes.py               POST /auth/login, POST /auth/register, POST /auth/logout
+                                GET  /api/auth/me
+        services.py             AuthService: register, login, rate-limited by IP
+        schemas.py              UserLoginSchema, UserRegisterSchema (Marshmallow)
+
+      users/
+        routes.py               GET  /api/users?q=   (search, min 2 chars)
+                                GET  /api/users/<id>
+                                GET  /api/users/by-username/<username>
+                                GET  /api/profile
+                                PUT  /api/profile
+                                POST /api/profile/avatar  (upload PNG/JPG/GIF, max 10 MB)
+        services.py             UserService, ProfileService
+        repositories.py         UserRepository
+
+      chats/
+        services.py             ChatService: get_user_chats, get_unread_counts
+        repositories.py         ChatRepository: private/group chat CRUD, participants
+
+      groups/
+        services.py             GroupService: create_group, create_private_chat,
+                                add/remove members, get_group_info
+
+      messages/
+        services.py             MessageService: send, history, mark_read,
+                                edit (5 min window), delete (5 min window)
+        repositories/           MessageRepository, LastReadRepository
+
+      presence/
+        services.py             PresenceService: track online/offline via Redis TTL keys
+
+      pages/
+        routes.py               Serves index.html and auth.html templates
+
+    socket/
+      handlers.py               Registers Socket.IO namespaces
+      namespaces.py
+        ChatNamespace    /chat      join_chat, new_message, typing, mark_read,
+                                   edit_message, delete_message,
+                                   create_private_chat, get_chat_list
+        PresenceNamespace /presence connect / disconnect hooks
+        GroupNamespace   /groups   create_group, get_group_info,
+                                   add_to_group, remove_from_group, leave_group
+
+  templates/
+    auth.html                   Login / registration page
+    index.html                  Main chat UI
+    modals/                     Modal dialog partials
+
+  static/
+    css/                        Compiled styles
+    js/                         Compiled TypeScript bundles
+
+  frontend/
+    src/
+      main.ts                   App bootstrap
+      auth.ts                   Login / register logic
+      chat.ts                   Chat list and message rendering
+      socket.ts                 Socket.IO client wrapper
+      ui.ts                     DOM helpers and UI state
+      profile.ts                Profile and avatar upload
+      utils.ts                  Shared utilities
+      types/                    TypeScript type definitions
+      styles/                   SCSS source files
+    webpack.config.js           Webpack bundler config
+    tsconfig.json               TypeScript compiler config
+    package.json                npm scripts: build (production), dev (watch)
+
+Features
+--------
+
+- Username / password authentication with session cookies
+- Per-IP login rate limiting (Redis)
+- Private chats (one-to-one, auto-created on first message)
+- Group chats with creator-managed membership
+- Real-time message delivery via Socket.IO (WebSocket)
+- Typing indicators broadcast to chat participants
+- Message editing and soft-deletion within a 5-minute window
+- Unread message counters per chat
+- User presence (online / offline) tracked via Redis TTL
+- User search by username prefix
+- Avatar upload (PNG, JPG, GIF; max 10 MB)
+- User bio / profile page
+- CSRF protection on all state-changing HTTP routes
+- Structured audit logging (login, registration, message edits/deletions)
+- Custom JSON error responses for all application exceptions
+- DI container for clean dependency management across services
+
+Running Tests
+-------------
+
+pytest
+pytest --cov=app
+
+Tests use an in-memory SQLite database and Redis DB 15 (configurable via REDIS_URL_TEST).
+CSRF is disabled automatically in the testing configuration.
+
+Production Deployment
+---------------------
+
+1. Set FLASK_ENV=production in your environment.
+2. Use a real SECRET_KEY (long random string).
+3. Set DATABASE_URL to your PostgreSQL connection string.
+4. Set SESSION_COOKIE_SECURE=True (already the default in production).
+5. Run with Gunicorn + eventlet or gevent for async Socket.IO support:
+   gunicorn -k eventlet -w 1 "app:create_app()"
 
 License
 -------
