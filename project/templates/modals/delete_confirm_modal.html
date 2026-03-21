@@ -1,11 +1,16 @@
 <div id="delete-confirm-modal-template" style="display: none;">
     <div class="modal" id="delete-confirm-modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
             <span class="close">&times;</span>
-            <h3>Подтверждение удаления</h3>
-            <p>Вы уверены, что хотите удалить это сообщение?</p>
-            <div class="modal-actions">
-                <button id="delete-confirm-yes" class="modal-btn modal-btn-danger">Удалить</button>
+            <div class="modal-icon-danger">
+                <i class="fas fa-trash-alt"></i>
+            </div>
+            <h3 style="text-align: center; padding-right: 0;">Удалить сообщение?</h3>
+            <p class="modal-desc">Это действие нельзя отменить.</p>
+            <div class="modal-actions" style="justify-content: center;">
+                <button id="delete-confirm-yes" class="modal-btn modal-btn-danger">
+                    <i class="fas fa-trash-alt" style="margin-right: 6px;"></i>Удалить
+                </button>
                 <button id="delete-confirm-no" class="modal-btn modal-btn-secondary">Отмена</button>
             </div>
         </div>

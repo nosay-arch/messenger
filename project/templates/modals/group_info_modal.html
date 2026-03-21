@@ -2,16 +2,30 @@
     <div class="modal" id="group-info-modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h3 id="group-name-display"></h3>
-            <p id="group-description-display"></p>
-            <p id="group-member-count"></p>
-            <h4>Участники:</h4>
-            <div id="group-members-list" class="members-list"></div>
-            <div id="group-add-member-section" style="display: none;">
-                <input type="text" id="group-info-search" placeholder="Добавить участника...">
-                <div id="group-info-results" class="search-results"></div>
+
+            <div class="group-info-meta">
+                <h3 id="group-name-display"></h3>
+                <p id="group-description-display"></p>
+                <div class="member-count-badge">
+                    <i class="fas fa-users"></i>
+                    <span id="group-member-count"></span>
+                </div>
             </div>
-            <button id="leave-group-btn">Покинуть группу</button>
+
+            <div class="section-label">Участники</div>
+            <div id="group-members-list" class="members-list"></div>
+
+            <div id="group-add-member-section" class="add-member-section" style="display: none;">
+                <div class="section-label" style="margin-top: 16px;">Добавить участника</div>
+                <div style="position: relative;">
+                    <input type="text" id="group-info-search" placeholder="Поиск по имени...">
+                    <div id="group-info-results" class="search-results"></div>
+                </div>
+            </div>
+
+            <button id="leave-group-btn">
+                <i class="fas fa-sign-out-alt" style="margin-right: 8px;"></i>Покинуть группу
+            </button>
         </div>
     </div>
 </div>

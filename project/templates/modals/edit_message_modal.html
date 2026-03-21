@@ -1,11 +1,14 @@
 <div id="edit-message-modal-template" style="display: none;">
     <div class="modal" id="edit-message-modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 480px;">
             <span class="close">&times;</span>
             <h3>Редактировать сообщение</h3>
-            <input type="text" id="edit-message-input" class="edit-message-input" value="">
+            <p class="modal-desc">Измените текст и нажмите «Сохранить».</p>
+            <input type="text" id="edit-message-input" class="edit-message-input" placeholder="Текст сообщения..." value="">
             <div class="modal-actions">
-                <button id="edit-message-save" class="modal-btn modal-btn-primary">Сохранить</button>
+                <button id="edit-message-save" class="modal-btn modal-btn-primary">
+                    <i class="fas fa-check" style="margin-right: 6px;"></i>Сохранить
+                </button>
                 <button id="edit-message-cancel" class="modal-btn modal-btn-secondary">Отмена</button>
             </div>
         </div>

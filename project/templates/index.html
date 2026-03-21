@@ -2,139 +2,15 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Мессенджер</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Messenger</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    <div class="app-container">
-        <!-- Экран загрузки -->
-        <div id="loading-screen" class="loading-screen">
-            <div class="loader"></div>
-            <p>Загрузка...</p>
-        </div>
-
-        <!-- Оверлей авторизации -->
-        <div id="auth-overlay" class="auth-overlay hidden">
-            <div class="auth-card">
-                <input type="hidden" id="csrf-token" value="{{ csrf_token() }}">
-
-                <div class="auth-header">
-                    <h2 id="auth-title" class="auth-card-title">Вход</h2>
-                    <p id="auth-subtitle" class="auth-card-subtitle">Введите свои данные</p>
-                </div>
-
-                <div id="auth-error" class="error-message hidden"></div>
-
-                <div class="auth-fields">
-                    <div class="input-group" id="login-group">
-                        <i class="fas fa-user"></i>
-                        <input type="text" id="auth-login" placeholder="Имя пользователя" autocomplete="username">
-                    </div>
-
-                    <div class="input-group">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="auth-password" placeholder="Пароль" autocomplete="current-password">
-                    </div>
-
-                    <div class="input-group hidden" id="password-confirm-group">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="auth-password-confirm" placeholder="Подтвердите пароль" autocomplete="new-password">
-                    </div>
-                </div>
-
-                <button id="auth-submit" class="btn-primary btn-full">Войти</button>
-                <button id="auth-toggle" class="btn-link">Нет аккаунта? Зарегистрироваться</button>
-            </div>
-        </div>
-
-        <!-- Основной интерфейс (изначально скрыт) -->
-        <div id="main-interface" class="main-panel hidden">
-            <!-- Боковая панель с чатами -->
-            <div class="chats-sidebar" id="chats-sidebar">
-                <div class="chats-header">
-                    <div class="chats-header-left">
-                        <button id="user-menu-button" class="user-menu-button">
-                            <i class="fas fa-bars"></i>
-                        </button>
-                        <div id="user-popup" class="user-popup hidden">
-                            <div class="popup-header">
-                                <div class="popup-username" id="popup-username"></div>
-                            </div>
-                            <div class="popup-divider"></div>
-                            <button id="popup-profile" class="popup-item">
-                                <i class="fas fa-user-circle"></i>
-                                <span>Профиль</span>
-                            </button>
-                            <button id="popup-create-group" class="popup-item">
-                                <i class="fas fa-users"></i>
-                                <span>Создать группу</span>
-                            </button>
-                            <button id="popup-logout" class="popup-item logout">
-                                <i class="fas fa-sign-out-alt"></i>
-                                <span>Выйти</span>
-                            </button>
-                            <div class="popup-footer">
-                                <span class="popup-version">версия 1.0.0</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="chats-header-center">
-                        <input type="text" id="sidebar-user-search" placeholder="Поиск" autocomplete="off">
-                        <div id="sidebar-search-results" class="search-results"></div>
-                    </div>
-                </div>
-
-                <div id="chats-list" class="chats-list"></div>
-            </div>
-
-            <!-- Разделитель для изменения ширины сайдбара -->
-            <div id="resizer" class="resizer"></div>
-
-            <!-- Основная область чата -->
-            <div class="chat-area">
-                <div id="chat-header" class="chat-header hidden">
-                    <button id="back-to-chats" class="back-button">←</button>
-                    <div class="chat-header-avatar" id="chat-header-avatar">
-                        <img id="chat-avatar-img" class="chat-avatar-img" style="display: none;">
-                        <div id="chat-avatar-placeholder" class="chat-avatar-placeholder"></div>
-                    </div>
-                    <span id="chat-partner-name" class="chat-partner-name"></span>
-                    <span id="online-status" class="online-status"></span>
-                    <div id="typing-indicator" class="typing-indicator hidden">
-                        <span></span><span></span><span></span>
-                    </div>
-                </div>
-
-                <div id="messages-container" class="messages-container hidden"></div>
-
-                <div id="chat-placeholder" class="chat-placeholder">Выберите чат</div>
-
-                <div id="input-area" class="input-area hidden">
-                    <input type="text" id="message-input" placeholder="Введите сообщение" autocomplete="off">
-                    <button id="send-btn">➤ Отправить</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Уведомления -->
-    <div id="notification" class="notification"></div>
-
-    <!-- Контейнер для модальных окон (шаблоны) -->
-    <div id="modal-container" style="display: none;">
-        {% include 'modals/edit_message_modal.html' %}
-        {% include 'modals/delete_confirm_modal.html' %}
-        {% include 'modals/create_group_modal.html' %}
-        {% include 'modals/group_info_modal.html' %}
-        {% include 'modals/user_profile_view_modal.html' %}
-        {% include 'modals/profile_modal.html' %}
-    </div>
-
-    <!-- Скрипты -->
-    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
-    <script src="{{ url_for('static', filename='js/bundle.js') }}"></script>
+    <div id="root"></div>
+    <input type="hidden" id="csrf-token" value="{{ csrf_token() }}">
+    <script src="/static/js/bundle.js"></script>
 </body>
 </html>

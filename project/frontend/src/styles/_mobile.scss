@@ -1,101 +1,271 @@
-/* mobile.scss - Updated for light theme */
+/* _mobile.scss — Full Mobile Redesign
+   Strategy: screen-to-screen transitions (like native apps),
+   no overlay drawer, bottom-sheet modals, full safe-area support.
+*/
+
+/* ══════════════════════════════════════════
+   BASE MOBILE FIXES
+══════════════════════════════════════════ */
+
 @media (max-width: 768px) {
-    .chats-header {
-        padding-top: max(14px, env(safe-area-inset-top));
-        padding-left: 12px;
-        padding-right: 12px;
+
+    /* Prevent rubber-band on body, let containers scroll */
+    html, body {
+        overscroll-behavior: none;
+        -webkit-text-size-adjust: 100%;
     }
+
+    /* Use dynamic viewport height so keyboard doesn't break layout */
+    .app-container {
+        height: 100vh;
+        height: 100dvh;
+        min-height: -webkit-fill-available;
+    }
+
+    /* ══════════════════════════════════════════
+       MAIN PANEL — stacking context for transitions
+    ══════════════════════════════════════════ */
+
+    .main-panel {
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+        flex: 1;
+        min-height: 0;
+    }
+
+    /* ══════════════════════════════════════════
+       SIDEBAR — full-screen, default visible (translateX 0)
+    ══════════════════════════════════════════ */
 
     .chats-sidebar {
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 85%;
-        max-width: 300px;
-        z-index: 100;
-        transform: translateX(-100%);
-        transition: transform 0.2s ease;
-        box-shadow: none;
-        background: var(--panel);
-        border-right: 1px solid var(--border);
-    }
-    .chats-sidebar.open {
-        transform: translateX(0);
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
-    }
-
-    .sidebar-overlay {
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.3);
-        z-index: 90;
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.2s ease;
-    }
-    .sidebar-overlay.visible {
-        opacity: 1;
-        visibility: visible;
+        width: 100%;
+        max-width: 100%;
+        z-index: 10;
+        border-right: none;
+
+        /* Slide transition */
+        transform: translateX(0);
+        transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+
+        /* iOS momentum scroll for child elements */
+        -webkit-overflow-scrolling: touch;
     }
 
-    .resizer {
+    /* ══════════════════════════════════════════
+       CHAT AREA — full-screen, starts off-screen right
+    ══════════════════════════════════════════ */
+
+    .chat-area {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        z-index: 11;
+        display: flex;
+        flex-direction: column;
+
+        /* Start off-screen to the right */
+        transform: translateX(100%);
+        transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+
+        /* Prevent ambient glow from showing through */
+        background: var(--bg);
+    }
+
+    /* Disable the ::before pseudo-element (ambient glow) on mobile */
+    .chat-area::before {
         display: none;
     }
 
+    /* ══════════════════════════════════════════
+       CHAT-OPEN STATE — chat slides in, sidebar slides left
+    ══════════════════════════════════════════ */
+
+    .main-panel.chat-open .chats-sidebar {
+        transform: translateX(-30%);
+        pointer-events: none;
+        /* Parallax depth effect */
+        will-change: transform;
+    }
+
+    .main-panel.chat-open .chat-area {
+        transform: translateX(0);
+        will-change: transform;
+    }
+
+    /* Hardware-accelerate both panels */
+    .chats-sidebar,
     .chat-area {
-        width: 100%;
+        will-change: transform;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
     }
 
-    .messages-container {
-        padding: 12px 8px;
+    /* ══════════════════════════════════════════
+       HIDE DESKTOP-ONLY ELEMENTS
+    ══════════════════════════════════════════ */
+
+    .resizer {
+        display: none !important;
     }
 
-    .message .bubble {
-        max-width: 85%;
-        font-size: 0.9rem;
-        padding: 8px 12px;
+    /* Overlay not needed with screen-transition approach */
+    .sidebar-overlay {
+        display: none !important;
     }
 
-    .message .timestamp {
-        font-size: 0.5rem;
-    }
+    /* ══════════════════════════════════════════
+       SIDEBAR HEADER — safe area top
+    ══════════════════════════════════════════ */
 
-    .input-area {
-        padding: 10px 12px;
-        padding-bottom: max(10px, env(safe-area-inset-bottom));
-        gap: 6px;
-    }
-
-    .input-area input {
-        padding: 10px 14px;
-        font-size: 16px;
-        border-radius: 6px;
-    }
-
-    .input-area button {
-        padding: 10px 16px;
-        min-width: 44px;
-        border-radius: 6px;
-        font-size: 1rem;
-    }
-
-    .chat-header {
-        padding: 8px 12px;
-        gap: 6px;
-        background: var(--panel);
+    .chats-header {
+        padding-top: max(14px, env(safe-area-inset-top));
+        padding-left: 14px;
+        padding-right: 14px;
+        padding-bottom: 10px;
+        flex-shrink: 0;
+        /* Subtle bottom border */
         border-bottom: 1px solid var(--border);
     }
 
+    .chats-header-center {
+        flex: 1;
+    }
+
+    /* Larger search input on mobile */
+    #sidebar-user-search {
+        padding: 10px 12px 10px 34px;
+        font-size: 16px; /* Prevents iOS auto-zoom */
+        border-radius: 12px;
+        height: 40px;
+    }
+
+    .search-icon {
+        font-size: 0.8rem;
+        left: 12px;
+    }
+
+    /* Search results dropdown */
+    .search-results {
+        max-height: 50vh;
+        border-radius: var(--r-lg);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .search-results .result-item {
+        padding: 12px 14px;
+        font-size: 0.9rem;
+    }
+
+    /* ══════════════════════════════════════════
+       CHATS LIST
+    ══════════════════════════════════════════ */
+
+    .chats-list-wrap {
+        /* Ensure it fills remaining space */
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .chats-list {
+        padding: 8px 8px;
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
+    }
+
+    /* Larger touch targets for chat items */
+    .chat-item {
+        padding: 10px 10px;
+        border-radius: var(--r);
+        margin-bottom: 2px;
+        /* Minimum 48px height for comfortable tapping */
+        min-height: 64px;
+        align-items: center;
+    }
+
+    .chat-avatar {
+        width: 46px;
+        height: 46px;
+        font-size: 1rem;
+        border-radius: var(--r);
+        flex-shrink: 0;
+    }
+
+    .chat-name {
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .chat-last-msg {
+        font-size: 0.76rem;
+        margin-top: 2px;
+    }
+
+    .chat-time {
+        font-size: 0.67rem;
+    }
+
+    .unread-badge {
+        font-size: 0.68rem;
+        min-width: 20px;
+        padding: 2px 6px;
+    }
+
+    /* ══════════════════════════════════════════
+       CHAT HEADER — safe area top
+    ══════════════════════════════════════════ */
+
+    .chat-header {
+        padding-top: max(10px, env(safe-area-inset-top));
+        padding-bottom: 10px;
+        padding-left: 12px;
+        padding-right: 16px;
+        min-height: 58px;
+        flex-shrink: 0;
+        gap: 10px;
+    }
+
+    /* Back button — always visible on mobile */
+    .back-button {
+        display: flex;
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
+        border-radius: var(--r);
+        /* Larger tap area */
+        margin-left: -4px;
+    }
+
     .chat-partner-name {
-        font-size: 0.95rem;
+        font-size: 0.92rem;
+        font-weight: 600;
     }
 
     .online-status {
-        font-size: 0.65rem;
+        font-size: 0.7rem;
+    }
+
+    /* Chat header avatar — slightly smaller */
+    .chat-header-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--r-sm);
+        flex-shrink: 0;
+    }
+
+    /* Typing indicator in header */
+    .typing-indicator {
+        margin-left: 4px;
     }
 
     .typing-indicator span {
@@ -103,120 +273,686 @@
         height: 4px;
     }
 
-    .chat-item {
-        padding: 8px 6px;
-        border-radius: 6px;
+    /* ══════════════════════════════════════════
+       MESSAGES CONTAINER
+    ══════════════════════════════════════════ */
+
+    .messages-container {
+        flex: 1;
+        min-height: 0;
+        padding: 12px 10px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
     }
 
-    .chat-avatar {
-        width: 36px;
-        height: 36px;
+    /* Message bubbles */
+    .message {
+        margin-bottom: 4px;
+    }
+
+    .message-content {
+        max-width: 80%;
+    }
+
+    .message .bubble {
         font-size: 0.9rem;
-        border-radius: 6px;
+        padding: 9px 12px;
+        border-radius: 14px;
+        line-height: 1.5;
     }
 
-    .chat-name {
-        font-size: 0.85rem;
+    .message.own .bubble {
+        border-bottom-right-radius: 4px;
     }
 
-    .chat-last-msg {
-        font-size: 0.7rem;
+    .message.other .bubble {
+        border-bottom-left-radius: 4px;
     }
+
+    .message .timestamp {
+        font-size: 0.58rem;
+    }
+
+    .message .avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+        margin-right: 6px;
+    }
+
+    .message-avatar-img {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+    }
+
+    .message.other.same-user-message .message-content {
+        margin-left: 34px;
+    }
+
+    .message.other.first-in-group {
+        margin-top: 8px;
+    }
+
+    /* Message actions button — always visible on mobile (no hover) */
+    .message-actions {
+        opacity: 1 !important;
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+        /* Ensure it's always tappable */
+    }
+
+    /* Context menu — center on mobile instead of anchored */
+    .message-actions-menu {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%) scale(0.93);
+        right: auto;
+        bottom: auto;
+        min-width: 200px;
+        border-radius: var(--r-lg);
+        z-index: 2000;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
+    }
+
+    .message-actions-menu.show {
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    .message-actions-menu button {
+        padding: 14px 18px;
+        font-size: 0.92rem;
+    }
+
+    /* ══════════════════════════════════════════
+       INPUT AREA — fixed above keyboard
+    ══════════════════════════════════════════ */
+
+    .input-area {
+        flex-shrink: 0;
+        padding: 8px 12px;
+        padding-bottom: max(10px, env(safe-area-inset-bottom));
+        gap: 8px;
+        border-top: 1px solid var(--border);
+        /* Ensure it's always above keyboard */
+        position: relative;
+        z-index: 5;
+    }
+
+    .input-area input {
+        flex: 1;
+        padding: 11px 16px;
+        font-size: 16px; /* Prevents iOS auto-zoom */
+        border-radius: 22px;
+        min-height: 44px;
+    }
+
+    .input-area button {
+        width: 44px;
+        height: 44px;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+    }
+
+    /* ══════════════════════════════════════════
+       USER MENU BUTTON & POPUP
+    ══════════════════════════════════════════ */
 
     .user-menu-button {
         width: 36px;
         height: 36px;
-        font-size: 20px;
-    }
-
-    .result-item {
-        padding: 10px 12px;
-        font-size: 0.9rem;
-    }
-
-    .notification {
-        top: auto;
-        bottom: 16px;
-        left: 16px;
-        right: 16px;
-        text-align: center;
-        border-radius: 8px;
-        padding: 12px 16px;
-        font-size: 0.9rem;
-    }
-
-    #sidebar-user-search {
-        padding: 8px 12px;
-        font-size: 16px;
-    }
-
-    .search-results {
-        max-height: 180px;
-        border-radius: 6px;
-    }
-
-    .back-button {
-        display: inline-block;
-    }
-}
-
-@media (max-width: 480px) {
-    .chats-sidebar {
-        width: 90%;
-        max-width: 260px;
-    }
-
-    .messages-container {
-        padding: 8px 4px;
-    }
-
-    .message .bubble {
-        max-width: 90%;
-        padding: 6px 10px;
-    }
-
-    .chat-header {
-        padding: 6px 8px;
-    }
-
-    .chat-partner-name {
-        font-size: 0.9rem;
-    }
-
-    .input-area {
-        padding: 8px 8px;
-    }
-
-    .input-area input {
-        padding: 8px 12px;
-    }
-
-    .input-area button {
-        padding: 8px 14px;
-        min-width: 40px;
+        font-size: 1rem;
     }
 
     .user-popup {
         left: 0;
-        transform: none;
-        width: 180px;
+        right: auto;
+        width: 220px;
+        border-radius: var(--r-lg);
+        /* Show above everything */
+        z-index: 600;
     }
-    .user-popup.hidden {
-        transform: translateY(-6px) scale(0.96);
+
+    .popup-item {
+        padding: 11px 14px;
+        font-size: 0.9rem;
+    }
+
+    /* ══════════════════════════════════════════
+       NOTIFICATION — top of screen on mobile
+    ══════════════════════════════════════════ */
+
+    .notification {
+        /* Move to top so it doesn't fight with input area */
+        top: max(16px, env(safe-area-inset-top));
+        bottom: auto;
+        left: 12px;
+        right: 12px;
+        max-width: none;
+        text-align: center;
+        border-radius: var(--r-lg);
+        font-size: 0.87rem;
+        padding: 12px 16px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    @keyframes notifIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px) scale(0.96);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    /* ══════════════════════════════════════════
+       CHAT PLACEHOLDER
+    ══════════════════════════════════════════ */
+
+    .chat-placeholder {
+        flex: 1;
+        min-height: 0;
+    }
+
+    .placeholder-icon {
+        width: 64px;
+        height: 64px;
+        font-size: 1.6rem;
+        border-radius: var(--r-xl);
+    }
+
+    .placeholder-title {
+        font-size: 0.95rem;
+    }
+
+    .placeholder-sub {
+        font-size: 0.78rem;
+        max-width: 200px;
+        text-align: center;
+    }
+
+    /* ══════════════════════════════════════════
+       MODALS — Bottom Sheet style
+    ══════════════════════════════════════════ */
+
+    .modal {
+        align-items: flex-end;
+        padding: 0;
+        /* Tap outside to close still works */
+    }
+
+    .modal-content {
+        width: 100%;
+        max-width: 100%;
+        border-radius: var(--r-xl) var(--r-xl) 0 0;
+        max-height: 88vh;
+        padding: 8px 20px max(20px, env(safe-area-inset-bottom));
+        margin: 0;
+        /* Override the slideUp animation with sheetUp */
+        animation: sheetUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Drag handle at top of sheet */
+    .modal-content::before {
+        content: '';
+        display: block;
+        width: 36px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--border-hover);
+        margin: 10px auto 20px;
+    }
+
+    .modal-content h3 {
+        font-size: 1.05rem;
+        margin-bottom: 16px;
+        padding-right: 32px;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 16px;
+    }
+
+    .modal-btn {
+        width: 100%;
+        text-align: center;
+        padding: 14px;
+        font-size: 0.92rem;
+    }
+
+    /* ── Profile & User Modal — also bottom sheet ── */
+
+    .profile-modal {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .profile-modal-content {
+        width: 100%;
+        max-width: 100%;
+        border-radius: var(--r-xl) var(--r-xl) 0 0;
+        max-height: 92vh;
+        padding: 8px 20px max(24px, env(safe-area-inset-bottom));
+        margin: 0;
+        animation: sheetUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .profile-modal-content::before {
+        content: '';
+        display: block;
+        width: 36px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--border-hover);
+        margin: 10px auto 20px;
+    }
+
+    .profile-modal-header {
+        margin-bottom: 18px;
+        padding-bottom: 14px;
+    }
+
+    .profile-modal-header h3 {
+        font-size: 1.05rem;
+    }
+
+    .profile-actions {
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 20px;
+        padding-top: 14px;
+    }
+
+    .profile-actions button {
+        padding: 13px;
+    }
+
+    .profile-section {
+        margin-bottom: 14px;
+    }
+
+    .profile-section label {
+        font-size: 0.7rem;
+        margin-bottom: 5px;
+    }
+
+    .profile-section input,
+    .profile-section textarea {
+        font-size: 16px; /* Prevents iOS zoom */
+        padding: 11px 14px;
+    }
+
+    .profile-avatar-large {
+        width: 76px;
+        height: 76px;
+        font-size: 2rem;
+        border-radius: var(--r-lg);
+    }
+
+    /* ── Shared bottom sheet animation ── */
+    @keyframes sheetUp {
+        from {
+            transform: translateY(100%);
+            opacity: 0.8;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    /* ── Delete confirm modal — smaller ── */
+    .modal-content[style*="max-width: 400px"] {
+        /* Override inline style max-width on mobile */
+        max-width: 100% !important;
+    }
+
+    /* ══════════════════════════════════════════
+       AUTH CARD
+    ══════════════════════════════════════════ */
+
+    .auth-overlay {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 100%;
+        border-radius: var(--r-xl) var(--r-xl) 0 0;
+        padding: 12px 24px max(32px, env(safe-area-inset-bottom));
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        animation: sheetUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Handle bar on auth card */
+    .auth-card::before {
+        content: '';
+        display: block;
+        width: 36px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--border-hover);
+        margin: 10px auto 20px;
+        position: static;
+        transform: none;
+        background: var(--border-hover);
+        opacity: 1;
+    }
+
+    /* Remove the top glow line since we have the handle bar */
+    .auth-card::after {
+        display: none;
+    }
+
+    .auth-card-title {
+        font-size: 1.5rem;
+        text-align: left;
+    }
+
+    .auth-card-subtitle {
+        text-align: left;
+        margin-bottom: 24px;
+    }
+
+    .auth-card .input-group {
+        margin-bottom: 12px;
+    }
+
+    .auth-card input {
+        font-size: 16px; /* Prevents iOS zoom */
+        padding: 13px 14px 13px 42px;
+        min-height: 48px;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        min-height: 48px;
+        font-size: 0.95rem;
+        border-radius: var(--r);
+    }
+
+    /* ══════════════════════════════════════════
+       GROUP MODALS
+    ══════════════════════════════════════════ */
+
+    #group-user-search,
+    #group-info-search,
+    #group-name,
+    #group-description {
+        font-size: 16px;
+        padding: 12px 14px;
+    }
+
+    .step-actions {
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .step-actions button {
+        padding: 12px 18px;
+        font-size: 0.9rem;
+    }
+
+    .members-list {
+        max-height: 180px;
+    }
+
+    .member-item {
+        padding: 11px 14px;
+    }
+
+    #leave-group-btn {
+        padding: 13px;
+        font-size: 0.9rem;
+    }
+
+    /* ══════════════════════════════════════════
+       CHATS LIST FADE
+    ══════════════════════════════════════════ */
+
+    .chats-list-wrap::after {
+        height: 20px;
+    }
+
+    /* ══════════════════════════════════════════
+       MISC FIXES
+    ══════════════════════════════════════════ */
+
+    /* Prevent text selection during swipe */
+    .main-panel * {
+        -webkit-user-select: none;
+        user-select: none;
+    }
+
+    /* Re-enable text selection in inputs and messages */
+    .main-panel input,
+    .main-panel textarea,
+    .main-panel .message-text,
+    .main-panel .profile-field,
+    .main-panel .popup-username {
+        -webkit-user-select: text;
+        user-select: text;
+    }
+
+    /* Remove tap highlight flash on iOS */
+    * {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Better scrollbar on mobile (hidden) */
+    .messages-container::-webkit-scrollbar,
+    .chats-list::-webkit-scrollbar,
+    .modal-content::-webkit-scrollbar,
+    .profile-modal-content::-webkit-scrollbar {
+        display: none;
+    }
+
+    .messages-container,
+    .chats-list,
+    .modal-content,
+    .profile-modal-content {
+        scrollbar-width: none;
     }
 }
 
-@media (max-width: 768px) {
-    .message-content {
-        max-width: 85%;
-    }
-}
+
+/* ══════════════════════════════════════════
+   SMALL PHONES (≤ 480px)
+══════════════════════════════════════════ */
 
 @media (max-width: 480px) {
+
+    .message-content {
+        max-width: 86%;
+    }
+
+    .message .bubble {
+        font-size: 0.88rem;
+        padding: 8px 11px;
+    }
+
+    .message.other.same-user-message .message-content {
+        margin-left: 30px;
+    }
+
+    .input-area {
+        padding: 8px 10px;
+        padding-bottom: max(10px, env(safe-area-inset-bottom));
+        gap: 6px;
+    }
+
+    .chat-header {
+        padding-left: 10px;
+        padding-right: 12px;
+        min-height: 54px;
+    }
+
+    .chat-partner-name {
+        font-size: 0.88rem;
+    }
+
+    .chat-avatar {
+        width: 42px;
+        height: 42px;
+    }
+
+    .chats-header {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .user-popup {
+        width: 200px;
+    }
+
+    .auth-card {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .profile-modal-content,
+    .modal-content {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .profile-avatar-large {
+        width: 68px;
+        height: 68px;
+        font-size: 1.8rem;
+    }
+}
+
+
+/* ══════════════════════════════════════════
+   VERY SMALL PHONES (≤ 360px)
+══════════════════════════════════════════ */
+
+@media (max-width: 360px) {
+
     .message-content {
         max-width: 90%;
     }
-    .message.other.same-user-message .bubble {
-        margin-left: 36px;
+
+    .chat-avatar {
+        width: 38px;
+        height: 38px;
+        font-size: 0.9rem;
+        border-radius: var(--r-sm);
+    }
+
+    .input-area button {
+        width: 40px;
+        height: 40px;
+        font-size: 0.85rem;
+    }
+
+    .chat-item {
+        padding: 9px 8px;
+        min-height: 58px;
+    }
+
+    .chat-item .chat-avatar {
+        width: 36px;
+        height: 36px;
+    }
+
+    .modal-content {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .profile-modal-content {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+}
+
+
+/* ══════════════════════════════════════════
+   LANDSCAPE PHONES
+══════════════════════════════════════════ */
+
+@media (max-width: 768px) and (orientation: landscape) and (max-height: 500px) {
+
+    /* Compact header in landscape */
+    .chat-header {
+        min-height: 44px;
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+    .chats-header {
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+    /* Smaller bubbles in landscape */
+    .message .bubble {
+        font-size: 0.86rem;
+        padding: 7px 11px;
+    }
+
+    /* Compact input */
+    .input-area {
+        padding-top: 6px;
+        padding-bottom: max(6px, env(safe-area-inset-bottom));
+    }
+
+    .input-area input {
+        padding: 9px 14px;
+    }
+
+    .input-area button {
+        width: 38px;
+        height: 38px;
+    }
+
+    /* Compact auth */
+    .auth-card {
+        padding-top: 8px;
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+
+    .auth-card-title {
+        font-size: 1.25rem;
+        margin-bottom: 4px;
+    }
+
+    .auth-card-subtitle {
+        margin-bottom: 14px;
+    }
+
+    .auth-card .input-group {
+        margin-bottom: 8px;
+    }
+
+    /* Modals in landscape: taller but narrower */
+    .modal-content {
+        max-height: 96vh;
+        max-width: 480px;
+        margin: 0 auto;
+        border-radius: var(--r-xl);
+    }
+
+    .profile-modal-content {
+        max-height: 96vh;
+        max-width: 480px;
+        margin: 0 auto;
+        border-radius: var(--r-xl);
     }
 }

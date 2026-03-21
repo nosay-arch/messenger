@@ -3,6 +3,7 @@
     "target": "ES2017",
     "lib": ["ES2017", "DOM"],
     "module": "ES2015",
+    "jsx": "react-jsx",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,

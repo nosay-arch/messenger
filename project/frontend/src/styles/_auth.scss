@@ -1,54 +1,81 @@
-/* auth.scss */
+/* auth.scss — Modern Auth Form */
+
+/* ── Overlay ── */
+
 .auth-overlay {
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.2);
+    inset: 0;
+    background: var(--bg);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 100;
-    animation: fadeIn 0.3s ease;
+    animation: fadeIn 0.3s var(--ease);
 }
+
+/* ── Card ── */
 
 .auth-card {
-    width: 90%;
-    max-width: 420px;
-    padding: 40px 32px;
+    width: 92%;
+    max-width: 400px;
+    padding: 44px 36px 36px;
     background: var(--panel);
-    border-radius: 16px;
+    border-radius: var(--r-xl);
     box-shadow: var(--shadow-lg);
-    animation: slideUp 0.3s ease;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-hover);
+    animation: authIn 0.4s var(--ease);
+    position: relative;
+    overflow: hidden;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+/* Top accent line */
+.auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50%;
+    height: 1px;
+    background: var(--accent);
+    opacity: 0.5;
 }
 
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes authIn {
+    from {
+        opacity: 0;
+        transform: translateY(28px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
+
+/* ── Header ── */
 
 .auth-card-title {
-    margin-bottom: 8px;
-    font-size: 1.75rem;
-    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 1.8rem;
+    font-weight: 800;
     color: var(--text);
     text-align: center;
+    letter-spacing: -0.04em;
 }
 
 .auth-card-subtitle {
-    margin-bottom: 24px;
-    font-size: 0.95rem;
+    margin-bottom: 30px;
+    font-size: 0.875rem;
     color: var(--text-muted);
     text-align: center;
+    letter-spacing: 0.01em;
 }
+
+/* ── Input groups ── */
 
 .auth-card .input-group {
     position: relative;
-    margin-bottom: 18px;
+    margin-bottom: 14px;
 }
 
 .auth-card .input-group i {
@@ -57,82 +84,84 @@
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-muted);
-    font-size: 0.95rem;
-    transition: color 0.2s ease;
+    font-size: 0.82rem;
+    transition: color var(--t);
+    pointer-events: none;
+    z-index: 1;
 }
 
 .auth-card .input-group:focus-within i {
-    color: var(--accent);
+    color: var(--accent-light);
 }
 
-.auth-card input,
-.auth-card textarea {
+.auth-card input {
     width: 100%;
-    padding: 12px 12px 12px 42px;
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
+    padding: 12px 14px 12px 42px;
+    border: 1px solid var(--border);
+    border-radius: var(--r);
     background: var(--card);
     color: var(--text);
-    font-size: 0.95rem;
-    transition: all 0.2s ease;
+    font-size: 0.9rem;
     font-family: inherit;
-}
-
-.auth-card textarea {
-    resize: vertical;
-    min-height: 80px;
-    padding: 12px;
-}
-
-.auth-card input:focus,
-.auth-card textarea:focus {
-    border-color: var(--accent);
+    transition: all var(--t) var(--ease);
+    caret-color: var(--accent-light);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(73, 80, 87, 0.1);
-    background: var(--panel);
 }
 
-.auth-card input::placeholder,
-.auth-card textarea::placeholder {
+.auth-card input:focus {
+    border-color: var(--accent);
+    background: var(--card-hover);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.auth-card input::placeholder {
     color: var(--text-muted);
 }
 
+/* ── Error message ── */
+
 .auth-card .error-message {
     color: var(--danger);
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     margin-bottom: 16px;
     text-align: center;
-    padding: 10px 12px;
-    border-radius: 6px;
-    background: rgba(220, 53, 69, 0.05);
-    animation: shake 0.15s ease;
-    border: 1px solid rgba(220, 53, 69, 0.2);
+    padding: 10px 14px;
+    border-radius: var(--r);
+    background: rgba(244, 63, 94, 0.08);
+    border: 1px solid rgba(244, 63, 94, 0.22);
     word-break: break-word;
+    line-height: 1.45;
+    animation: errorShake 0.35s var(--ease);
 }
 
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    20%, 60% { transform: translateX(-4px); }
-    40%, 80% { transform: translateX(4px); }
+@keyframes errorShake {
+    0%,  100% { transform: translateX(0); }
+    20%,  60% { transform: translateX(-5px); }
+    40%,  80% { transform: translateX(5px); }
 }
 
 .auth-card .error-message.hidden {
     display: none;
 }
 
-/* Кнопки */
+/* ── Buttons ── */
+
 .btn-primary,
 .btn-secondary {
     width: 100%;
     padding: 12px 16px;
     border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.95rem;
+    border-radius: var(--r);
+    font-weight: 700;
+    font-size: 0.9rem;
     cursor: pointer;
-    transition: all 0.2s ease;
-    margin-bottom: 10px;
+    transition: all var(--t) var(--ease);
+    margin-bottom: 8px;
     display: block;
+    font-family: inherit;
+    letter-spacing: 0.01em;
+    text-align: center;
+    outline: none;
 }
 
 .btn-primary {
@@ -142,7 +171,6 @@
 
 .btn-primary:hover:not(:disabled) {
     background: var(--accent-dark);
-    box-shadow: var(--shadow-lg);
     transform: translateY(-1px);
 }
 
@@ -152,50 +180,48 @@
 
 .btn-secondary {
     background: var(--card);
-    color: var(--accent);
-    border: 1.5px solid var(--border);
+    color: var(--text-sec);
+    border: 1px solid var(--border);
 }
 
 .btn-secondary:hover:not(:disabled) {
-    background: var(--panel);
-    border-color: var(--accent);
+    background: var(--card-hover);
+    color: var(--text);
+    border-color: var(--border-hover);
 }
 
 .btn-link {
     background: none;
     border: none;
-    color: var(--accent);
-    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
     cursor: pointer;
-    padding: 8px 16px;
-    margin-top: 8px;
-    transition: color 0.2s;
+    padding: 8px;
+    transition: color var(--t);
     width: 100%;
     text-align: center;
+    font-family: inherit;
+    display: block;
+    margin-top: 4px;
+    letter-spacing: 0.01em;
 }
+
 .btn-link:hover {
-    color: var(--accent-dark);
-    text-decoration: underline;
+    color: var(--accent-light);
 }
 
 .btn-full {
     width: 100%;
 }
 
+/* Disabled state */
 .auth-card button:disabled,
 button:disabled {
-    background: var(--text-muted);
+    opacity: 0.45;
     pointer-events: none;
-    opacity: 0.5;
-    color: white;
+    cursor: not-allowed;
 }
 
 .hidden {
     display: none !important;
-}
-
-#phone-step,
-#code-step,
-#profile-step {
-    animation: fadeIn 0.2s ease;
 }

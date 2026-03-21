@@ -10,6 +10,13 @@ class ChatNamespace(Namespace):
     def on_connect(self):
         if not current_user.is_authenticated:
             return False
+        try:
+            chats = current_app.container.chat_service.get_user_chats(current_user.id)
+            emit('chat_list', chats)
+            unread = current_app.container.chat_service.get_unread_counts(current_user.id)
+            emit('unread_counts', unread)
+        except Exception:
+            current_app.logger.exception('Error sending initial chat_list on connect')
 
     @socket_authenticated
     @socket_handle_errors

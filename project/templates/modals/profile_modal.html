@@ -5,26 +5,39 @@
                 <h3>Мой профиль</h3>
                 <button class="profile-modal-close">✕</button>
             </div>
+
             <div id="profile-error" class="error-message hidden"></div>
+
+            <!-- Avatar upload -->
             <div class="profile-section" style="text-align: center;">
-                <div id="profile-avatar-container" class="profile-avatar-large">
-                    <img id="profile-avatar-img" src="" alt="avatar" style="display: none;">
-                    <div id="profile-avatar-placeholder"></div>
+                <div class="avatar-upload-section">
+                    <label for="avatar-upload" class="avatar-upload-trigger">
+                        <div id="profile-avatar-container" class="profile-avatar-large">
+                            <img id="profile-avatar-img" src="" alt="avatar" style="display: none;">
+                            <div id="profile-avatar-placeholder"></div>
+                            <div class="avatar-edit-overlay">
+                                <i class="fas fa-camera"></i>
+                                <span>Изменить</span>
+                            </div>
+                        </div>
+                    </label>
+                    <input type="file" id="avatar-upload" accept="image/png, image/jpeg, image/gif, image/webp" style="display: none;">
                 </div>
-                <label for="avatar-upload" class="btn-secondary" style="margin-top: 8px; display: inline-block;">
-                    Загрузить фото
-                </label>
-                <input type="file" id="avatar-upload" accept="image/png, image/jpeg, image/gif" style="display: none;">
             </div>
+
+            <!-- Username (read-only) -->
             <div class="profile-section">
-                <label>Имя пользователя</label>
+                <label for="profile-modal-username">Имя пользователя</label>
                 <input type="text" id="profile-modal-username" disabled>
             </div>
+
+            <!-- Bio -->
             <div class="profile-section">
-                <label>О себе</label>
+                <label for="profile-modal-bio">О себе</label>
                 <textarea id="profile-modal-bio" placeholder="Расскажите о себе..." maxlength="500"></textarea>
                 <div class="char-count" id="bio-char-count">0/500</div>
             </div>
+
             <div class="profile-actions">
                 <button id="profile-save-btn" class="btn-primary">Сохранить</button>
                 <button id="profile-cancel-btn" class="btn-secondary">Отмена</button>
