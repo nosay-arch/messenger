@@ -25,6 +25,16 @@ export const UserMenu: React.FC = () => {
     showNotification('Вы вышли из системы', false);
   };
 
+  const openProfile = () => {
+    setOpen(false);
+    window.dispatchEvent(new CustomEvent('openProfileModal'));
+  };
+
+  const openCreateGroup = () => {
+    setOpen(false);
+    window.dispatchEvent(new CustomEvent('openCreateGroupModal'));
+  };
+
   return (
     <div className="user-menu-wrapper" ref={menuRef}>
       <button className="user-menu-button" onClick={() => setOpen(!open)}>
@@ -35,22 +45,10 @@ export const UserMenu: React.FC = () => {
           <div className="popup-username">{user?.username}</div>
         </div>
         <div className="popup-divider"></div>
-        <button
-          className="popup-item"
-          onClick={() => {
-            setOpen(false);
-            // open profile modal
-          }}
-        >
+        <button className="popup-item" onClick={openProfile}>
           <i className="fas fa-user"></i> Профиль
         </button>
-        <button
-          className="popup-item"
-          onClick={() => {
-            setOpen(false);
-            // open create group modal
-          }}
-        >
+        <button className="popup-item" onClick={openCreateGroup}>
           <i className="fas fa-users"></i> Создать группу
         </button>
         <div className="popup-divider"></div>

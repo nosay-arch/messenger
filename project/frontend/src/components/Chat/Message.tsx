@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useChat } from '../../contexts/ChatContext';
 import { Message as MessageType } from '../../types';
@@ -15,7 +15,20 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const isOwn = message.user_id === user?.id;
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+    if (showMenu) {
+      document.addEventListener('click', handleClickOutside);
+    }
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showMenu]);
 
   const handleEdit = () => {
     setShowMenu(false);
@@ -37,11 +50,15 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
     deleteMessage(message.id);
   };
 
+  const handleOpenProfile = () => {
+    window.dispatchEvent(new CustomEvent('openUserProfileModal', { detail: { userId: message.user_id } }));
+  };
+
   return (
     <>
       <div className={`message ${isOwn ? 'own' : 'other'} ${message.is_deleted ? 'deleted' : ''}`}>
         {!isOwn && (
-          <div className="avatar" data-user-id={message.user_id}>
+          <div className="avatar" data-user-id={message.user_id} onClick={handleOpenProfile}>
             {message.avatar_url ? (
               <img src={message.avatar_url} alt="" />
             ) : (
@@ -52,7 +69,7 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
         <div className="message-content">
           {!isOwn && (
             <div className="message-nickname">
-              <span className="clickable-nickname" data-user-id={message.user_id}>
+              <span className="clickable-nickname" data-user-id={message.user_id} onClick={handleOpenProfile}>
                 {escapeHtml(message.nickname)}
               </span>
             </div>
@@ -72,14 +89,14 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
           </div>
         </div>
         {isOwn && !message.is_deleted && (
-          <div className="message-actions" onClick={() => setShowMenu(!showMenu)}>
+          <div className="message-actions" onClick={() => setShowMenu(!showMenu)} ref={menuRef}>
             ⋮
-          </div>
-        )}
-        {showMenu && (
-          <div className="message-actions-menu show">
-            <button onClick={handleEdit}>Редактировать</button>
-            <button onClick={handleDelete}>Удалить</button>
+            {showMenu && (
+              <div className="message-actions-menu show">
+                <button onClick={handleEdit}>Редактировать</button>
+                <button onClick={handleDelete}>Удалить</button>
+              </div>
+            )}
           </div>
         )}
       </div>

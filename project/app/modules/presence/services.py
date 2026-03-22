@@ -1,6 +1,8 @@
 from typing import List
+from datetime import datetime
 from app.modules.chats.repositories import ChatRepository
 from app.modules.users.repositories import UserRepository
+from app.core.utils.helpers import utcnow
 
 
 class PresenceService:
@@ -10,10 +12,18 @@ class PresenceService:
         self.user_repo = user_repo
 
     def user_connected(self, user_id: int, username: str, sid: str):
+        user = self.user_repo.get_by_id(user_id)
+        if user:
+            user.last_seen = utcnow()
+            self.user_repo.session.commit()
         self.redis.setex(f"online:{username}", 3600, sid)
 
-    def user_disconnected(self, username: str):
+    def user_disconnected(self, user_id: int, username: str):
         self.redis.delete(f"online:{username}")
+        user = self.user_repo.get_by_id(user_id)
+        if user:
+            user.last_seen = utcnow()
+            self.user_repo.session.commit()
 
     def is_online(self, username: str) -> bool:
         return self.redis.exists(f"online:{username}")
@@ -28,3 +38,9 @@ class PresenceService:
             if self.is_online(u.username):
                 online.append(u.username)
         return online
+
+    def get_last_seen(self, username: str) -> datetime:
+        user = self.user_repo.get_by_username(username)
+        if user and user.last_seen:
+            return user.last_seen
+        return utcnow()

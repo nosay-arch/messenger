@@ -3,6 +3,7 @@ from typing import Callable, Any
 
 from flask import jsonify, current_app
 from flask_login import current_user
+from app.core.extensions import db
 
 
 def handle_errors(f: Callable) -> Callable:
@@ -80,3 +81,16 @@ def socket_handle_errors(f: Callable) -> Callable:
             else:
                 emit('error', {'message': 'Internal server error'})
     return wrapped
+
+
+def transactional(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        try:
+            result = f(*args, **kwargs)
+            db.session.commit()
+            return result
+        except Exception:
+            db.session.rollback()
+            raise
+    return wrapper

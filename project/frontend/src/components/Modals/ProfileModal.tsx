@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useChat } from '../../contexts/ChatContext';
 import { profileAPI } from '../../services/api';
 import { showNotification } from '../Common/Notification';
 
@@ -10,6 +11,7 @@ interface ProfileModalProps {
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
   const { user, logout } = useAuth();
+  const { socket } = useChat();
   const [bio, setBio] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -40,19 +42,24 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
     }
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setAvatarFile(file);
     const reader = new FileReader();
     reader.onload = () => setAvatarPreview(reader.result as string);
     reader.readAsDataURL(file);
-    // Upload immediately
     const formData = new FormData();
     formData.append('avatar', file);
-    profileAPI.uploadAvatar(file)
-      .then(() => showNotification('Аватар обновлён', false))
-      .catch(() => showNotification('Ошибка загрузки аватара', true));
+    try {
+      const response = await profileAPI.uploadAvatar(file);
+      setAvatarUrl(response.avatar_url);
+      showNotification('Аватар обновлён', false);
+      socket?.emitChat('get_chat_list', {});
+    } catch (err) {
+      showNotification('Ошибка загрузки аватара', true);
+      setAvatarPreview(null);
+    }
   };
 
   useEffect(() => {

@@ -5,6 +5,7 @@ export type ChatEventHandlers = {
   onUnreadCounts: (data: any) => void;
   onChatCreated: (data: any) => void;
   onChatHistory: (data: any) => void;
+  onChatHistoryMore?: (data: any) => void;
   onNewMessage: (data: any) => void;
   onTyping: (data: any) => void;
   onMessageDeleted: (data: any) => void;
@@ -14,6 +15,7 @@ export type ChatEventHandlers = {
   onGroupCreated: (data: any) => void;
   onGroupInfo: (data: any) => void;
   onGroupInfoUpdated: (data: any) => void;
+  onAddedToGroup: (data: any) => void;
   onRemovedFromGroup: (data: any) => void;
   onLeftGroup: (data: any) => void;
   onDisconnect: (reason: string) => void;
@@ -49,6 +51,9 @@ export class SocketManager {
     this.chatSocket.on('unread_counts', this.handlers.onUnreadCounts);
     this.chatSocket.on('chat_created', this.handlers.onChatCreated);
     this.chatSocket.on('chat_history', this.handlers.onChatHistory);
+    this.chatSocket.on('chat_history_more', (data) => {
+      if (this.handlers.onChatHistoryMore) this.handlers.onChatHistoryMore(data);
+    });
     this.chatSocket.on('new_message', this.handlers.onNewMessage);
     this.chatSocket.on('typing', this.handlers.onTyping);
     this.chatSocket.on('message_deleted', this.handlers.onMessageDeleted);
@@ -60,6 +65,7 @@ export class SocketManager {
     this.groupSocket.on('group_created', this.handlers.onGroupCreated);
     this.groupSocket.on('group_info', this.handlers.onGroupInfo);
     this.groupSocket.on('group_info_updated', this.handlers.onGroupInfoUpdated);
+    this.groupSocket.on('added_to_group', this.handlers.onAddedToGroup);
     this.groupSocket.on('removed_from_group', this.handlers.onRemovedFromGroup);
     this.groupSocket.on('left_group', this.handlers.onLeftGroup);
 

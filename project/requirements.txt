@@ -5,7 +5,7 @@ Flask-WTF==1.2.1
 Flask-SocketIO==5.3.5
 python-socketio==5.10.0
 python-engineio==4.8.0
-SQLAlchemy==2.0.47
+python-magic==0.4.27
 redis==5.0.1
 python-dotenv==1.0.0
 marshmallow==3.20.1

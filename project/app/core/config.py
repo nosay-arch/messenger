@@ -12,22 +12,11 @@ class BaseConfig:
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{default_db_path}")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    _is_sqlite = "sqlite" in SQLALCHEMY_DATABASE_URI.lower()
-
-    if _is_sqlite:
-        SQLALCHEMY_ENGINE_OPTIONS = {
-            "connect_args": {"check_same_thread": False},
-        }
-    else:
-        SQLALCHEMY_ENGINE_OPTIONS = {
-            "pool_size": 10,
-            "pool_recycle": 3600,
-            "pool_pre_ping": True,
-            "connect_args": {},
-        }
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "connect_args": {"check_same_thread": False},
+    }
 
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-insecure-key-change-in-production")
-
     BASE_URL = os.getenv("BASE_URL", "http://localhost:5000")
 
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
@@ -50,6 +39,12 @@ class BaseConfig:
         "join_chat": 3,
         "typing": 2,
         "mark_read": 5,
+        "create_group": 1,
+        "add_to_group": 3,
+        "remove_from_group": 3,
+        "leave_group": 3,
+        "edit_message": 4,
+        "delete_message": 4,
     }
     LOGIN_RATE_LIMIT_ATTEMPTS = 10
     LOGIN_RATE_LIMIT_PERIOD = 900

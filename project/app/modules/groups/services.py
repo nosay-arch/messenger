@@ -8,6 +8,7 @@ from app.core.exceptions.auth_errors import (
     UserNotFoundError,
     ValidationError
 )
+from app.core.utils.decorators import transactional
 
 
 class GroupService:
@@ -19,6 +20,7 @@ class GroupService:
         self.redis = redis_client
         self.config = config
 
+    @transactional
     def create_group(self, name: str, description: str, creator_id: int, member_ids: List[int]) -> Dict:
         if not name or not name.strip() or len(name.strip()) > 100:
             raise ValidationError("Неверное название группы")
@@ -34,7 +36,7 @@ class GroupService:
         for user_id in member_ids:
             self.chat_repo.add_participant(user_id, chat.id)
 
-        self.chat_repo.session.commit()
+        self.chat_repo.session.flush()
 
         return {
             'id': chat.id,
@@ -45,6 +47,7 @@ class GroupService:
             'member_count': len(member_ids)
         }
 
+    @transactional
     def add_user_to_group(self, chat_id: str, user_id: int, adder_id: int) -> Dict:
         chat = self.chat_repo.get_by_id(chat_id)
         if not chat or chat.type != 'group':
@@ -61,10 +64,11 @@ class GroupService:
             raise UserNotFoundError("Пользователь не найден")
 
         self.chat_repo.add_participant(user_id, chat_id)
-        self.chat_repo.session.commit()
+        self.chat_repo.session.flush()
 
         return {"chat_id": chat_id, "user_id": user_id}
 
+    @transactional
     def remove_user_from_group(self, chat_id: str, user_id: int, remover_id: int) -> Dict:
         chat = self.chat_repo.get_by_id(chat_id)
         if not chat or chat.type != 'group':
@@ -74,7 +78,7 @@ class GroupService:
             if not self.chat_repo.user_in_chat(remover_id, chat_id):
                 raise AccessDeniedError("Вы не участник этой группы")
             self.chat_repo.remove_participant(remover_id, chat_id)
-            self.chat_repo.session.commit()
+            self.chat_repo.session.flush()
             return {"chat_id": chat_id, "user_id": remover_id, "left": True}
 
         if not self.chat_repo.is_group_creator(remover_id, chat_id):
@@ -84,7 +88,7 @@ class GroupService:
             raise UserNotFoundError("Пользователь не в группе")
 
         self.chat_repo.remove_participant(user_id, chat_id)
-        self.chat_repo.session.commit()
+        self.chat_repo.session.flush()
 
         return {"chat_id": chat_id, "user_id": user_id, "left": False}
 
@@ -120,7 +124,7 @@ class GroupService:
         if not chat:
             raise ChatNotFoundError("Ошибка создания чата")
 
-        self.chat_repo.session.commit()
+        self.chat_repo.session.flush()
 
         chat_info = {'id': chat.id, 'name': other_user.username, 'type': 'private'}
         other_dto = {'id': other_user.id, 'username': other_user.username} if created else None

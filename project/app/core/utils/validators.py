@@ -1,5 +1,6 @@
 import re
 import html
+import magic
 from app.core.exceptions.auth_errors import ValidationError
 
 _IMAGE_SIGNATURES = [
@@ -42,9 +43,7 @@ def allowed_file(filename: str) -> bool:
 
 
 def validate_image_content(file) -> bool:
-    header = file.read(8)
+    header = file.read(2048)
     file.seek(0)
-    for sig, _ in _IMAGE_SIGNATURES:
-        if header[:len(sig)] == sig:
-            return True
-    return False
+    mime = magic.from_buffer(header, mime=True)
+    return mime in ['image/jpeg', 'image/png', 'image/gif', 'image/webp']

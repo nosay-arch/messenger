@@ -1,15 +1,17 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useChat } from '../../contexts/ChatContext';
 import { formatTime, escapeHtml } from '../../services/utils';
 
 export const ChatList: React.FC = () => {
   const { chats, currentChatId, unreadCounts, switchChat } = useChat();
 
-  const sortedChats = Object.values(chats).sort((a, b) => {
-    if (!a.lastTime) return 1;
-    if (!b.lastTime) return -1;
-    return new Date(b.lastTime).getTime() - new Date(a.lastTime).getTime();
-  });
+  const sortedChats = useMemo(() => {
+    return Object.values(chats).sort((a, b) => {
+      if (!a.lastTime) return 1;
+      if (!b.lastTime) return -1;
+      return new Date(b.lastTime).getTime() - new Date(a.lastTime).getTime();
+    });
+  }, [chats]);
 
   if (sortedChats.length === 0) {
     return (

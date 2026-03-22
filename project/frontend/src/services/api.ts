@@ -10,7 +10,18 @@ export async function fetchWithCSRF(url: string, options: RequestInit = {}) {
   if (!isFormData && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
-  return fetch(url, { ...options, headers });
+  const response = await fetch(url, { ...options, headers });
+  if (!response.ok) {
+    let errorMessage = `HTTP error ${response.status}`;
+    try {
+      const errorData = await response.json();
+      if (errorData.error) errorMessage = errorData.error;
+    } catch (e) {
+      // ignore
+    }
+    throw new Error(errorMessage);
+  }
+  return response;
 }
 
 export const authAPI = {
@@ -56,7 +67,7 @@ export const profileAPI = {
     fetchWithCSRF('/api/profile', {
       method: 'PUT',
       body: JSON.stringify({ bio }),
-    }),
+    }).then(res => res.json()),
 
   uploadAvatar: (file: File) => {
     const formData = new FormData();
@@ -64,6 +75,6 @@ export const profileAPI = {
     return fetchWithCSRF('/api/profile/avatar', {
       method: 'POST',
       body: formData,
-    });
+    }).then(res => res.json());
   },
 };

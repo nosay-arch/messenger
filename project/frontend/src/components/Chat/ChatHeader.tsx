@@ -6,8 +6,24 @@ interface ChatHeaderProps {
   onBack?: () => void;
 }
 
+const formatLastSeen = (lastSeenStr: string | null): string => {
+  if (!lastSeenStr) return 'был(а) недавно';
+  const lastSeen = new Date(lastSeenStr);
+  const now = new Date();
+  const diffMs = now.getTime() - lastSeen.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMins < 1) return 'был(а) только что';
+  if (diffMins < 60) return `был(а) ${diffMins} мин назад`;
+  if (diffHours < 24) return `был(а) ${diffHours} ч назад`;
+  if (diffDays < 7) return `был(а) ${diffDays} дн назад`;
+  return `был(а) ${lastSeen.toLocaleDateString()}`;
+};
+
 export const ChatHeader: React.FC<ChatHeaderProps> = ({ onBack }) => {
-  const { chats, currentChatId, currentChatPartnerId, typingUsers } = useChat();
+  const { chats, currentChatId, currentChatPartnerId, getOnlineStatus, getLastSeen, getTypingUsernames } = useChat();
   const chat = currentChatId ? chats[currentChatId] : null;
   const isGroup = chat?.type === 'group';
   const isPrivate = chat?.type === 'private';
@@ -17,9 +33,17 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ onBack }) => {
 
   const handleAvatarClick = () => {
     if (isPrivate && currentChatPartnerId) {
-      // open user profile modal
+      window.dispatchEvent(new CustomEvent('openUserProfileModal', { detail: { userId: currentChatPartnerId } }));
     }
   };
+
+  const typingUsernames = currentChatId ? getTypingUsernames(currentChatId) : [];
+  const typingText = typingUsernames.length > 0
+    ? `Печатает: ${typingUsernames.join(', ')}`
+    : '';
+
+  const isOnline = isPrivate && getOnlineStatus(partnerName);
+  const lastSeenStr = isPrivate ? getLastSeen(partnerName) : null;
 
   return (
     <div className="chat-header">
@@ -39,9 +63,13 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ onBack }) => {
         <div className="chat-partner-name">{partnerName}</div>
         <div className="online-status">
           {isPrivate ? (
-            <span>○ офлайн</span> // status will be updated via socket
+            isOnline ? (
+              <span style={{ color: 'var(--online)' }}>● онлайн</span>
+            ) : (
+              <span style={{ color: 'var(--text-muted)' }}>○ {formatLastSeen(lastSeenStr)}</span>
+            )
           ) : (
-            typingUsers.size > 0 && <TypingIndicator />
+            typingText && <span className="typing-text">{typingText}</span>
           )}
         </div>
       </div>

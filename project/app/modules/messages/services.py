@@ -14,6 +14,7 @@ from app.core.utils.validators import validate_message_text, escape_html
 from app.core.utils.helpers import utcnow
 from app.core.logging import log_message_deleted, log_message_edited
 from app.models.last_read import LastRead
+from app.core.utils.decorators import transactional
 
 
 class MessageService:
@@ -40,13 +41,16 @@ class MessageService:
         chat_ids = self.chat_repo.get_user_chat_ids(user_id)
         return self.message_repo.count_unread_for_user(user_id, chat_ids, self.redis)
 
+    @transactional
     def send_message(self, user_id: int, chat_id: str, text: str) -> Dict[str, Any]:
         if not self._check_user_in_chat(user_id, chat_id):
             raise AccessDeniedError("Вы не участник этого чата")
         validate_message_text(text)
         safe_text = escape_html(text)
         message = self.message_repo.create(chat_id, user_id, safe_text)
-        self.message_repo.session.commit()
+        self.message_repo.session.flush()
+        if self.redis:
+            self.redis.delete(f"unread:{user_id}")
         user = self.user_repo.get_by_id(user_id)
         username = user.username if user else ''
         avatar_url = user.avatar_url if user else None
@@ -78,6 +82,7 @@ class MessageService:
             'user_id': m.user_id
         } for m in messages]
 
+    @transactional
     def mark_read(self, user_id: int, chat_id: str) -> None:
         if not self._check_user_in_chat(user_id, chat_id):
             raise AccessDeniedError()
@@ -98,10 +103,11 @@ class MessageService:
                     last_message_id=last_msg.id
                 )
                 self.last_read_repo.session.add(last_read)
-            self.last_read_repo.session.commit()
+            self.last_read_repo.session.flush()
             if self.redis:
                 self.redis.delete(f"unread:{user_id}")
 
+    @transactional
     def delete_message(self, user_id: int, message_id: int, chat_id: str) -> Dict[str, Any]:
         if not self._check_user_in_chat(user_id, chat_id):
             raise AccessDeniedError()
@@ -115,11 +121,12 @@ class MessageService:
         success = self.message_repo.delete_message(message_id)
         if not success:
             raise MessageNotFoundError()
-        self.message_repo.session.commit()
+        self.message_repo.session.flush()
         user = self.user_repo.get_by_id(user_id)
         log_message_deleted(user_id, message_id, chat_id, user.username if user else "unknown")
         return {"chat_id": chat_id, "message_id": message_id}
 
+    @transactional
     def edit_message(self, user_id: int, message_id: int, chat_id: str, new_text: str) -> Dict[str, Any]:
         if not self._check_user_in_chat(user_id, chat_id):
             raise AccessDeniedError()
@@ -135,7 +142,7 @@ class MessageService:
         edited = self.message_repo.edit_message(message_id, safe_text)
         if not edited:
             raise MessageNotFoundError()
-        self.message_repo.session.commit()
+        self.message_repo.session.flush()
         user = self.user_repo.get_by_id(user_id)
         log_message_edited(user_id, message_id, chat_id, user.username if user else "unknown")
         username = user.username if user else ''
