@@ -13,32 +13,51 @@ export const AuthOverlay: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!username.trim() || !password.trim()) {
+
+    const usernameTrimmed = username.trim();
+    const passwordTrimmed = password.trim();
+
+    if (!usernameTrimmed || !passwordTrimmed) {
       setError('Заполните все поля');
       return;
     }
+
     if (!isLoginMode) {
       if (!confirm.trim()) {
         setError('Подтвердите пароль');
         return;
       }
-      if (password !== confirm) {
+      if (passwordTrimmed !== confirm.trim()) {
         setError('Пароли не совпадают');
         return;
       }
-      if (password.length < 8) {
+      if (passwordTrimmed.length < 8) {
         setError('Пароль должен быть не менее 8 символов');
+        return;
+      }
+      if (usernameTrimmed.length < 3 || usernameTrimmed.length > 20) {
+        setError('Имя пользователя должно быть от 3 до 20 символов');
+        return;
+      }
+      if (!/^[a-zA-Z0-9_]+$/.test(usernameTrimmed)) {
+        setError('Имя пользователя может содержать только буквы, цифры и подчеркивание');
         return;
       }
     }
 
     setLoading(true);
-    const success = isLoginMode
-      ? await login(username, password)
-      : await register(username, password);
-    setLoading(false);
-    if (!success) {
-      setError(isLoginMode ? 'Ошибка входа' : 'Ошибка регистрации');
+    try {
+      const success = isLoginMode
+        ? await login(usernameTrimmed, passwordTrimmed)
+        : await register(usernameTrimmed, passwordTrimmed);
+
+      if (!success) {
+        setError(isLoginMode ? 'Неверное имя пользователя или пароль' : 'Ошибка регистрации. Возможно, имя уже занято');
+      }
+    } catch (err) {
+      setError('Произошла ошибка. Попробуйте позже');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -53,9 +72,9 @@ export const AuthOverlay: React.FC = () => {
   return (
     <div className="auth-overlay">
       <div className="auth-card">
-        <h2 className="auth-card-title">{isLoginMode ? 'Вход' : 'Регистрация'}</h2>
+        <h2 className="auth-card-title">{isLoginMode ? 'Добро пожаловать' : 'Создать аккаунт'}</h2>
         <p className="auth-card-subtitle">
-          {isLoginMode ? 'Введите свои данные' : 'Создайте новый аккаунт'}
+          {isLoginMode ? 'Войдите, чтобы продолжить общение' : 'Заполните форму для регистрации'}
         </p>
         {error && <div className="error-message">{error}</div>}
         <form onSubmit={handleSubmit}>
@@ -68,6 +87,7 @@ export const AuthOverlay: React.FC = () => {
               onChange={e => setUsername(e.target.value)}
               disabled={loading}
               autoFocus
+              autoComplete="username"
             />
           </div>
           <div className="input-group">
@@ -78,6 +98,7 @@ export const AuthOverlay: React.FC = () => {
               value={password}
               onChange={e => setPassword(e.target.value)}
               disabled={loading}
+              autoComplete={isLoginMode ? 'current-password' : 'new-password'}
             />
           </div>
           {!isLoginMode && (
@@ -89,6 +110,7 @@ export const AuthOverlay: React.FC = () => {
                 value={confirm}
                 onChange={e => setConfirm(e.target.value)}
                 disabled={loading}
+                autoComplete="new-password"
               />
             </div>
           )}

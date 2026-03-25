@@ -52,6 +52,10 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose }) =
   }, []);
 
   const addUser = (user: { id: number; username: string }) => {
+    if (selectedUsers.size >= 50) {
+      showNotification('Группа не может содержать более 50 участников', true);
+      return;
+    }
     setSelectedUsers(prev => new Map(prev).set(user.id, user));
     setSearchQuery('');
     setShowResults(false);
@@ -70,6 +74,19 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose }) =
       showNotification('Введите название группы', true);
       return;
     }
+    if (name.trim().length > 100) {
+      showNotification('Название группы не должно превышать 100 символов', true);
+      return;
+    }
+    if (description.length > 300) {
+      showNotification('Описание не должно превышать 300 символов', true);
+      return;
+    }
+    if (selectedUsers.size < 1) {
+      showNotification('Выберите хотя бы одного участника', true);
+      return;
+    }
+
     const memberIds = Array.from(selectedUsers.keys());
     createGroup(name.trim(), description.trim(), memberIds);
     onClose();
@@ -86,11 +103,16 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose }) =
   return ReactDOM.createPortal(
     <div className="modal" style={{ display: 'block' }} onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <span className="close" onClick={onClose}>&times;</span>
+        <span className="close" onClick={onClose}>×</span>
         <h3>Создать группу</h3>
+
         <div className="step-indicator">
-          <div className={`step ${step === 1 ? 'active' : ''}`}>1. Участники</div>
-          <div className={`step ${step === 2 ? 'active' : ''}`}>2. Информация</div>
+          <div className={`step ${step === 1 ? 'active' : ''}`}>
+            <span>1</span> Участники
+          </div>
+          <div className={`step ${step === 2 ? 'active' : ''}`}>
+            <span>2</span> Информация
+          </div>
         </div>
 
         {step === 1 && (
@@ -98,15 +120,15 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose }) =
             <div className="user-search-area" ref={searchRef}>
               <input
                 type="text"
-                id="group-user-search"
                 placeholder="Поиск пользователей..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
+                autoComplete="off"
               />
               {showResults && (
                 <div className="search-results show" style={{ position: 'absolute', width: '100%' }}>
                   {searchResults.length === 0 ? (
-                    <div className="empty-message">Ничего не найдено</div>
+                    <div className="empty-message">Пользователи не найдены</div>
                   ) : (
                     searchResults.map(user => (
                       <div
@@ -115,16 +137,20 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose }) =
                         onClick={() => addUser(user)}
                       >
                         <span className="avatar">{user.username.charAt(0).toUpperCase()}</span>
-                        <span className="username">{user.username}</span>
+                        <span className="username">{escapeHtml(user.username)}</span>
                       </div>
                     ))
                   )}
                 </div>
               )}
             </div>
+
             <div className="selected-users">
-              <h4>Выбранные участники ({selectedUsers.size})</h4>
+              <h4>Участники ({selectedUsers.size}/50)</h4>
               <div className="selected-users-list">
+                {selectedUsers.size === 0 && (
+                  <div className="empty-state">Добавьте участников через поиск</div>
+                )}
                 {Array.from(selectedUsers.values()).map(user => (
                   <span key={user.id} className="user-chip">
                     <span className="chip-avatar">{user.username.charAt(0).toUpperCase()}</span>
@@ -134,11 +160,12 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose }) =
                 ))}
               </div>
             </div>
+
             <div className="step-actions">
               <button
-                id="group-next-step"
                 onClick={() => setStep(2)}
                 disabled={selectedUsers.size === 0}
+                className="btn-primary"
               >
                 Далее
               </button>
@@ -148,26 +175,35 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose }) =
 
         {step === 2 && (
           <div className="step-content">
-            <input
-              type="text"
-              id="group-name"
-              placeholder="Название группы"
-              value={name}
-              onChange={e => setName(e.target.value)}
-            />
-            <textarea
-              id="group-description"
-              placeholder="Описание (необязательно)"
-              rows={3}
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-            />
+            <div className="input-group">
+              <label>Название группы *</label>
+              <input
+                type="text"
+                placeholder="Например: Друзья, Коллеги"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                maxLength={100}
+              />
+            </div>
+
+            <div className="input-group">
+              <label>Описание</label>
+              <textarea
+                placeholder="Расскажите о группе..."
+                rows={3}
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                maxLength={300}
+              />
+              <div className="char-count">{description.length}/300</div>
+            </div>
+
             <div className="step-actions">
-              <button id="group-back-step" onClick={() => setStep(1)}>
+              <button onClick={() => setStep(1)} className="btn-secondary">
                 Назад
               </button>
-              <button id="create-group-btn" onClick={handleCreate} disabled={!name.trim()}>
-                Создать
+              <button onClick={handleCreate} disabled={!name.trim()} className="btn-primary">
+                Создать группу
               </button>
             </div>
           </div>

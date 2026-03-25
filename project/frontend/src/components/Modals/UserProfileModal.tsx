@@ -38,13 +38,20 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ userId, onCl
       <div className="profile-modal-content" onClick={e => e.stopPropagation()}>
         <div className="profile-modal-header">
           <h3>Профиль пользователя</h3>
-          <button className="profile-modal-close" onClick={onClose}>&times;</button>
+          <button className="profile-modal-close" onClick={onClose}>×</button>
         </div>
-        {error && <div id="user-profile-error">{error}</div>}
-        {loading && <div className="loader"></div>}
+
+        {error && <div className="error-message">{error}</div>}
+
+        {loading && (
+          <div style={{ textAlign: 'center', padding: '32px' }}>
+            <div className="loader"></div>
+          </div>
+        )}
+
         {profile && (
           <>
-            <div className="profile-section">
+            <div className="profile-section" style={{ textAlign: 'center' }}>
               <div className="profile-avatar-large">
                 {profile.avatar_url ? (
                   <img src={profile.avatar_url} alt="Avatar" />
@@ -55,16 +62,23 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ userId, onCl
                 )}
               </div>
             </div>
+
             <div className="profile-section">
               <label>Имя пользователя</label>
               <div className="profile-field">{escapeHtml(profile.username)}</div>
             </div>
+
             <div className="profile-section">
               <label>О себе</label>
-              <div className="profile-field">{profile.bio ? escapeHtml(profile.bio) : '—'}</div>
+              <div className="profile-field">
+                {profile.bio ? escapeHtml(profile.bio) : 'Пользователь пока ничего не рассказал о себе'}
+              </div>
             </div>
+
             <div className="profile-actions">
-              <button className="btn-secondary" onClick={onClose}>Закрыть</button>
+              <button className="btn-secondary" onClick={onClose}>
+                Закрыть
+              </button>
             </div>
           </>
         )}

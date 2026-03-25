@@ -17,7 +17,12 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
   }
 
   if (isLoadingHistory) {
-    return <div className="loader"></div>;
+    return (
+      <div className="loading-screen" style={{ position: 'relative', background: 'transparent' }}>
+        <div className="loader"></div>
+        <p>Загрузка сообщений...</p>
+      </div>
+    );
   }
 
   return (

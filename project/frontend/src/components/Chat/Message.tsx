@@ -60,7 +60,7 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
         {!isOwn && (
           <div className="avatar" data-user-id={message.user_id} onClick={handleOpenProfile}>
             {message.avatar_url ? (
-              <img src={message.avatar_url} alt="" />
+              <img src={message.avatar_url} alt={message.nickname} />
             ) : (
               message.nickname.charAt(0).toUpperCase()
             )}
@@ -81,7 +81,7 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
                   ? 'Сообщение удалено'
                   : escapeHtml(message.text)}
                 {message.edited && !message.is_deleted && (
-                  <span className="edited-indicator">ред.</span>
+                  <span className="edited-indicator"> (ред.)</span>
                 )}
               </span>
               <span className="timestamp">{formatTime(message.timestamp)}</span>
@@ -93,8 +93,8 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
             ⋮
             {showMenu && (
               <div className="message-actions-menu show">
-                <button onClick={handleEdit}>Редактировать</button>
-                <button onClick={handleDelete}>Удалить</button>
+                <button onClick={handleEdit}>✏️ Редактировать</button>
+                <button onClick={handleDelete} className="delete-message">🗑️ Удалить</button>
               </div>
             )}
           </div>

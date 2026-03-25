@@ -21,6 +21,7 @@ export const GroupInfoModal: React.FC<GroupInfoModalProps> = ({ groupInfo, onClo
   const [memberCount, setMemberCount] = useState(groupInfo.member_count);
   const [description, setDescription] = useState(groupInfo.description);
   const [name, setName] = useState(groupInfo.name);
+  const [loading, setLoading] = useState(false);
 
   const isCreator = groupInfo.created_by === user?.id;
 
@@ -38,6 +39,7 @@ export const GroupInfoModal: React.FC<GroupInfoModalProps> = ({ groupInfo, onClo
       setShowResults(true);
     } catch (err) {
       console.error(err);
+      showNotification('Ошибка поиска', true);
     }
   }, 300);
 
@@ -45,21 +47,49 @@ export const GroupInfoModal: React.FC<GroupInfoModalProps> = ({ groupInfo, onClo
     performSearch(searchQuery);
   }, [searchQuery]);
 
-  const handleAddUser = (userId: number) => {
-    addUserToGroup(groupInfo.id, userId);
-    setSearchQuery('');
-    setShowResults(false);
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.search-results') && !target.closest('#group-info-search')) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  const handleAddUser = async (userId: number) => {
+    setLoading(true);
+    try {
+      addUserToGroup(groupInfo.id, userId);
+      setSearchQuery('');
+      setShowResults(false);
+      showNotification('Пользователь добавлен в группу', false);
+    } catch (err) {
+      showNotification('Ошибка добавления пользователя', true);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleRemoveUser = (userId: number) => {
-    if (confirm('Удалить участника?')) {
+  const handleRemoveUser = (userId: number, username: string) => {
+    if (window.confirm(`Удалить ${username} из группы?`)) {
       removeUserFromGroup(groupInfo.id, userId);
     }
   };
 
   const handleLeave = () => {
-    leaveGroup(groupInfo.id);
-    onClose();
+    if (isCreator) {
+      if (window.confirm('Вы создатель группы. Удаление группы приведет к удалению всех сообщений. Продолжить?')) {
+        leaveGroup(groupInfo.id);
+        onClose();
+      }
+    } else {
+      if (window.confirm('Вы уверены, что хотите покинуть группу?')) {
+        leaveGroup(groupInfo.id);
+        onClose();
+      }
+    }
   };
 
   useEffect(() => {
@@ -80,12 +110,14 @@ export const GroupInfoModal: React.FC<GroupInfoModalProps> = ({ groupInfo, onClo
   return ReactDOM.createPortal(
     <div className="modal" style={{ display: 'block' }} onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <span className="close" onClick={onClose}>&times;</span>
+        <span className="close" onClick={onClose}>×</span>
+
         <div className="group-info-meta">
           <h3>{escapeHtml(name)}</h3>
-          {description && <p>{escapeHtml(description)}</p>}
+          {description && <p className="group-description">{escapeHtml(description)}</p>}
           <div className="member-count-badge">
-            <i className="fas fa-users"></i> {memberCount} участников
+            <i className="fas fa-users"></i>
+            <span>{memberCount} участников</span>
           </div>
         </div>
 
@@ -95,15 +127,24 @@ export const GroupInfoModal: React.FC<GroupInfoModalProps> = ({ groupInfo, onClo
             <div key={m.id} className="member-item">
               <div className="member-avatar">
                 {m.avatar_url ? (
-                  <img src={m.avatar_url} alt="" />
+                  <img src={m.avatar_url} alt={m.username} />
                 ) : (
-                  <div className="member-avatar-placeholder">{m.username.charAt(0).toUpperCase()}</div>
+                  <div className="member-avatar-placeholder">
+                    {m.username.charAt(0).toUpperCase()}
+                  </div>
                 )}
               </div>
-              <span>{escapeHtml(m.username)} {m.is_creator && '(создатель)'}</span>
+              <div className="member-info">
+                <span className="member-name">{escapeHtml(m.username)}</span>
+                {m.is_creator && <span className="member-badge">Создатель</span>}
+              </div>
               {isCreator && !m.is_creator && (
-                <button className="remove-member-btn" onClick={() => handleRemoveUser(m.id)}>
-                  Удалить
+                <button
+                  className="remove-member-btn"
+                  onClick={() => handleRemoveUser(m.id, m.username)}
+                  title="Удалить участника"
+                >
+                  <i className="fas fa-user-minus"></i>
                 </button>
               )}
             </div>
@@ -112,34 +153,40 @@ export const GroupInfoModal: React.FC<GroupInfoModalProps> = ({ groupInfo, onClo
 
         {isCreator && (
           <div className="add-member-section">
-            <input
-              type="text"
-              id="group-info-search"
-              placeholder="Добавить участника..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-            />
-            {showResults && (
-              <div className="search-results show" style={{ position: 'absolute', width: '100%' }}>
-                {searchResults.length === 0 ? (
-                  <div className="empty-message">Ничего не найдено</div>
-                ) : (
-                  searchResults.map((user: any) => (
-                    <div
-                      key={user.id}
-                      className="result-item"
-                      onClick={() => handleAddUser(user.id)}
-                    >
-                      {user.username}
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
+            <div className="section-label" style={{ marginTop: '16px' }}>Добавить участника</div>
+            <div style={{ position: 'relative' }}>
+              <input
+                type="text"
+                id="group-info-search"
+                placeholder="Поиск по имени..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                disabled={loading}
+              />
+              {showResults && (
+                <div className="search-results show" style={{ position: 'absolute', width: '100%' }}>
+                  {searchResults.length === 0 ? (
+                    <div className="empty-message">Пользователи не найдены</div>
+                  ) : (
+                    searchResults.map((user: any) => (
+                      <div
+                        key={user.id}
+                        className="result-item"
+                        onClick={() => handleAddUser(user.id)}
+                      >
+                        <span className="avatar">{user.username.charAt(0).toUpperCase()}</span>
+                        <span className="username">{escapeHtml(user.username)}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
-        <button id="leave-group-btn" onClick={handleLeave}>
+        <button id="leave-group-btn" onClick={handleLeave} className={isCreator ? 'btn-danger' : 'btn-secondary'}>
+          <i className={`fas ${isCreator ? 'fa-trash-alt' : 'fa-sign-out-alt'}`} style={{ marginRight: '8px' }}></i>
           {isCreator ? 'Удалить группу' : 'Покинуть группу'}
         </button>
       </div>
