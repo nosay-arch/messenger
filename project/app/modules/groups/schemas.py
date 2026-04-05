@@ -31,7 +31,8 @@ class GroupInfoSchema(BaseSchema):
     description = fields.Str(allow_none=True)
     created_by = fields.Int()
     member_count = fields.Int()
-    members = fields.List(fields.Dict())  # Можно уточнить позже
+    # TODO: уточнить тип данных для members
+    members = fields.List(fields.Dict())
 
 
 class AddUserToGroupSchema(BaseSchema):

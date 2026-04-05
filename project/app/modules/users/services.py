@@ -16,7 +16,8 @@ class UserService:
         user = self.user_repo.get_by_id(user_id)
         if not user:
             return None
-        return {'id': user.id, 'username': user.username, 'confirmed': True}  # confirmed можно убрать, если нет
+        # TODO: убрать поле 'confirmed' если оно не используется
+        return {'id': user.id, 'username': user.username, 'confirmed': True}
 
 
 class ProfileService:

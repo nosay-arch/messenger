@@ -5,7 +5,7 @@ import { debounce, escapeHtml, formatTime } from '../services/utils';
 import { UserMenu } from './Common';
 import { showNotification } from './Common';
 
-// Search Component
+// Компонент поиска пользователей
 const Search: React.FC = () => {
   const { socket } = useChat();
   const [query, setQuery] = useState('');
@@ -75,7 +75,7 @@ const Search: React.FC = () => {
   );
 };
 
-// Chat List Component
+// Компонент списка чатов
 const ChatListComponent: React.FC = () => {
   const { chats, currentChatId, unreadCounts, switchChat } = useChat();
 
@@ -132,7 +132,7 @@ const ChatListComponent: React.FC = () => {
   );
 };
 
-// Main Sidebar Component
+// Компонент боковой панели
 export const Sidebar: React.FC = () => {
   return (
     <div className="sidebar">

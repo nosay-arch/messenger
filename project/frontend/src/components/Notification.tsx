@@ -1,2 +1,2 @@
-// Notification service - re-export from Common
+// Сервис уведомлений (реэкспорт из Common)
 export { Notification, showNotification } from './Common';

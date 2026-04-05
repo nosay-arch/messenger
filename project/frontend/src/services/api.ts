@@ -17,7 +17,7 @@ export async function fetchWithCSRF(url: string, options: RequestInit = {}) {
       const errorData = await response.json();
       if (errorData.error) errorMessage = errorData.error;
     } catch (e) {
-      // ignore
+      // Игнорируем ошибку парсинга
     }
     throw new Error(errorMessage);
   }

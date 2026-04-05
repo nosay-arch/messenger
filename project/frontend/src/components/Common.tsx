@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useChat } from '../contexts/ChatContext';
 import { showNotification as sendNotification } from './Notification';
 
-// Loader Component
+// Компонент ожидания загрузки (спиннер)
 export const Loader: React.FC = () => (
   <div className="loading-screen">
     <div className="loader"></div>
@@ -11,7 +11,7 @@ export const Loader: React.FC = () => (
   </div>
 );
 
-// Notification Component
+// Компонент уведомлений
 export const Notification: React.FC = () => {
   const [message, setMessage] = useState<string | null>(null);
   const [isError, setIsError] = useState(true);
@@ -34,7 +34,7 @@ export const Notification: React.FC = () => {
   );
 };
 
-// User Menu Component
+// Компонент меню пользователя
 export const UserMenu: React.FC = () => {
   const { user, logout } = useAuth();
   const { socket } = useChat();
@@ -102,7 +102,7 @@ export const UserMenu: React.FC = () => {
   );
 };
 
-// Export notification function separately
+// Функция для показа уведомления
 export const showNotification = (message: string, isError = true) => {
   window.dispatchEvent(new CustomEvent('notify', { detail: { message, isError } }));
 };

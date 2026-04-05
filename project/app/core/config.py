@@ -12,7 +12,6 @@ class BaseConfig:
     default_db_path = os.path.join(basedir, 'instance', 'messenger.db')
     _db_uri = os.getenv("DATABASE_URL")
     if not _db_uri:
-        # Properly format SQLite URI with absolute path
         _db_uri = f"sqlite:///{quote(default_db_path, safe='/:')}"
     SQLALCHEMY_DATABASE_URI = _db_uri
     SQLALCHEMY_TRACK_MODIFICATIONS = False

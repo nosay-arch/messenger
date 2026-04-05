@@ -6,7 +6,7 @@ import { profileAPI, usersAPI } from '../services/api';
 import { debounce, escapeHtml } from '../services/utils';
 import { showNotification } from './Common';
 
-// Delete Confirm Modal
+// Модальное окно подтверждения удаления
 export const DeleteConfirmModal: React.FC<{ onConfirm: () => void; onCancel: () => void }> = ({ onConfirm, onCancel }) => {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -40,7 +40,7 @@ export const DeleteConfirmModal: React.FC<{ onConfirm: () => void; onCancel: () 
   );
 };
 
-// Edit Message Modal
+// Модальное окно редактирования сообщения
 export const EditMessageModal: React.FC<{ initialText: string; onConfirm: (text: string) => void; onCancel: () => void }> = ({ initialText, onConfirm, onCancel }) => {
   const [text, setText] = useState(initialText);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -93,7 +93,7 @@ export const EditMessageModal: React.FC<{ initialText: string; onConfirm: (text:
   );
 };
 
-// Profile Modal
+// Модальное окно профиля пользователя
 export const ProfileModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const { user } = useAuth();
   const { socket } = useChat();
@@ -229,7 +229,7 @@ export const ProfileModal: React.FC<{ onClose: () => void }> = ({ onClose }) => 
   );
 };
 
-// User Profile Modal
+// Модальное окно виева профиля
 export const UserProfileModal: React.FC<{ userId: number; onClose: () => void }> = ({ userId, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -296,7 +296,7 @@ export const UserProfileModal: React.FC<{ userId: number; onClose: () => void }>
   );
 };
 
-// Create Group Modal
+// Модальное окно создания группы
 export const CreateGroupModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const { createGroup } = useChat();
   const [step, setStep] = useState(1);
@@ -468,7 +468,7 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = ({ onClose })
   );
 };
 
-// Group Info Modal
+// Модальное окно информации о группе
 export const GroupInfoModal: React.FC<{ groupInfo: any; onClose: () => void }> = ({ groupInfo, onClose }) => {
   const { addUserToGroup, removeUserFromGroup, leaveGroup } = useChat();
   const { user } = useAuth();

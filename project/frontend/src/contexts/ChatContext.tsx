@@ -48,7 +48,7 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isAuthenticated } = useAuth();
 
-  // State
+  // Состояние
   const [chats, setChats] = useState<Record<string, Chat>>({});
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -63,7 +63,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [hasMoreHistory, setHasMoreHistory] = useState<Record<string, boolean>>({});
   const [historyOffsets, setHistoryOffsets] = useState<Record<string, number>>({});
 
-  // Refs
+  // Оссылки на состоянию (для кеширования)
   const currentChatIdRef = useRef(currentChatId);
   const userRef = useRef(user);
   const chatsRef = useRef(chats);
@@ -72,7 +72,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const onlineStatusesRef = useRef(onlineStatuses);
   const lastSeenRef = useRef(lastSeen);
 
-  // Cache
+  // Кэш (кеш аватаров)
   const avatarCache = useRef<Map<string, string>>(new Map());
 
   useEffect(() => {
@@ -103,7 +103,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     lastSeenRef.current = lastSeen;
   }, [lastSeen]);
 
-  // Handlers
+  // Обработчики событий сокета
   const handlers = useRef<ChatEventHandlers>({
     onChatList: (data: any[]) => {
       const newChats: Record<string, Chat> = {};
