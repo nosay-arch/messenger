@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from sqlalchemy.pool import StaticPool
+from urllib.parse import quote
 
 load_dotenv()
 
@@ -9,7 +10,11 @@ basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 class BaseConfig:
     default_db_path = os.path.join(basedir, 'instance', 'messenger.db')
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{default_db_path}")
+    _db_uri = os.getenv("DATABASE_URL")
+    if not _db_uri:
+        # Properly format SQLite URI with absolute path
+        _db_uri = f"sqlite:///{quote(default_db_path, safe='/:')}"
+    SQLALCHEMY_DATABASE_URI = _db_uri
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     SQLALCHEMY_ENGINE_OPTIONS = {

@@ -13,40 +13,302 @@ Database: SQLite (development), PostgreSQL (production)
 Cache & real-time: Redis (session store, rate limiting, presence, message queue)
 
 
-Getting Started
----------------
+Quick Start
+-----------
 
 Prerequisites
 
 - Python 3.9+
 - Node.js 18+ and npm (for frontend build)
-- Redis server running locally (or via Docker)
+- Docker (recommended for Redis, or Redis server locally)
 
-Installation
+Installation & Setup
 
-1. Clone the repository
-   git clone https://github.com/user1149/messanger.git
-   cd messanger
+### Step 1: Clone and Setup Environment
 
-2. Create and activate a virtual environment
-   python -m venv venv
-   source venv/bin/activate
+```bash
+git clone https://github.com/nosay-arch/messenger.git
+cd messenger/project
 
-3. Install Python dependencies
-   pip install -r requirements.txt
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-4. Configure environment variables
-   cp .env.example .env
-   Edit .env if needed (see Configuration below).
+# Install Python dependencies
+pip install -r requirements.txt
+```
 
-5. Start Redis server (if not already running)
-   - Using Docker:
-     docker run --name redis -p 6379:6379 -d redis
-   - Using local installation:
-     redis-server
+### Step 2: Configure Environment Variables
 
-6. Run the application
-   python run.py
+Create a `.env` file in the `project/` directory (or copy from `.env.example`):
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and configure as needed:
+
+```env
+# Flask Configuration
+FLASK_ENV=development
+SECRET_KEY=your_secret_key_here_min_32_chars_long
+BASE_URL=http://localhost:5000
+
+# Database (SQLite for development)
+# Use absolute path for SQLite, or PostgreSQL for production
+DATABASE_URL=sqlite:////absolute/path/to/instance/messenger.db
+
+# Redis
+REDIS_URL=redis://localhost:6379/0
+
+# Security (set to False for development, True for production)
+SESSION_COOKIE_SECURE=False
+
+# CORS Origins (comma-separated)
+CORS_ORIGINS=http://localhost:3000,http://localhost:5000
+```
+
+### Step 3: Start Redis
+
+**Option A: Using Docker (Recommended)**
+
+```bash
+docker pull redis:latest
+docker run --name messenger-redis -p 6379:6379 -d redis
+```
+
+**Option B: Using Local Installation**
+
+```bash
+# On macOS with Homebrew
+brew install redis
+redis-server
+
+# On Linux
+sudo apt-get install redis-server
+redis-server
+
+# On Windows with WSL
+wsl
+sudo apt-get install redis-server
+redis-server
+```
+
+To stop Redis:
+
+```bash
+# Docker
+docker stop messenger-redis
+docker rm messenger-redis
+
+# Local
+# Ctrl+C in the terminal where redis-server is running
+```
+
+### Step 4: Verify Database Directory
+
+The app creates SQLite database in `project/instance/messenger.db`. 
+Make sure the `instance/` directory exists:
+
+```bash
+mkdir -p instance
+```
+
+### Step 5: Run the Backend
+
+```bash
+cd project
+python run.py
+```
+
+The server will start on `http://localhost:5000` in debug mode.
+
+Command line options:
+
+```bash
+python run.py --help
+
+# Run on specific host/port
+python run.py --host 0.0.0.0 --port 8000
+
+# Run in debug mode
+python run.py -d
+```
+
+### Step 6: Build & Run Frontend (Optional)
+
+In a separate terminal:
+
+```bash
+cd frontend
+npm install
+npm start  # for development with webpack
+# or
+npm run build  # to build production bundle
+```
+
+The frontend will be available at `http://localhost:3000` (if webpack dev server is configured).
+
+
+Troubleshooting
+---------------
+
+### "unable to open database file"
+
+**Problem**: SQLite can't create the database file
+
+**Solution**:
+```bash
+# Make sure instance directory exists
+mkdir -p project/instance
+
+# Verify DATABASE_URL in .env uses absolute path:
+DATABASE_URL=sqlite:////full/path/to/instance/messenger.db
+```
+
+### "Redis is NOT available" 
+
+**Problem**: Redis connection fails on startup
+
+**Solution**:
+```bash
+# Check if Redis is running
+redis-cli ping  # Should respond with PONG
+
+# If not running, start it
+docker run -p 6379:6379 -d redis
+
+# Or if using local installation
+redis-server
+```
+
+To run without Redis checks (not recommended):
+- Remove the `check_redis()` call from `run.py`
+
+### "Connection refused" on localhost:5000
+
+**Problem**: Port 5000 is already in use
+
+**Solution**:
+```bash
+# Use a different port
+python run.py --port 8000
+
+# Or find and kill the app using port 5000
+lsof -i :5000  # on macOS/Linux
+netstat -ano | findstr :5000  # on Windows
+```
+
+### "ModuleNotFoundError"
+
+**Problem**: Dependencies not installed
+
+**Solution**:
+```bash
+pip install -r requirements.txt
+```
+
+### "CORS errors" in browser console
+
+**Problem**: Frontend can't reach backend API
+
+**Solution**: Update CORS_ORIGINS in `.env`:
+```env
+CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+```
+
+Then restart the Flask app.
+
+### Frontend build issues
+
+**Problem**: `npm install` fails or module not found
+
+**Solution**:
+```bash
+cd frontend
+rm -rf node_modules package-lock.json
+npm install
+npm start
+```
+
+
+Configuration
+-------------
+
+### Environment Variables Reference
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `FLASK_ENV` | development | Flask environment mode |
+| `SECRET_KEY` | dev-insecure-... | Flask secret key (change in production!) |
+| `DATABASE_URL` | sqlite:// | Database connection URL |
+| `REDIS_URL` | redis://localhost:6379/0 | Redis connection URL |
+| `BASE_URL` | http://localhost:5000 | Application base URL |
+| `SESSION_COOKIE_SECURE` | False | HTTPS-only cookies (True in production) |
+| `CORS_ORIGINS` | http://localhost:3000 | Allowed cross-origin URLs |
+
+### Database Setup
+
+**Development**: Uses SQLite (auto-created from models)
+
+**Production**: Set `DATABASE_URL` to PostgreSQL:
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/messenger_prod
+```
+
+Then create tables:
+```bash
+python -c "from app import create_app; app = create_app(); app.app_context().push(); from app.core.extensions import db; db.create_all()"
+```
+
+
+Running Tests
+-------------
+
+```bash
+pytest tests/
+pytest tests/ --cov=app  # with coverage report
+```
+
+
+API Documentation
+-----------------
+
+Key endpoints:
+
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - User login
+- `GET /api/chats` - List user's chats
+- `POST /api/chats` - Create private chat
+- `WebSocket /socket.io` - Real-time messaging
+
+For detailed API docs, see the routes in `app/modules/*/routes.py`
+
+
+Project Structure
+-----------------
+
+```
+project/
+├── app/
+│   ├── core/           # Core app configuration and setup
+│   ├── models/         # SQLAlchemy models
+│   ├── modules/        # Feature modules (auth, chats, messages, etc)
+│   └── socket/         # WebSocket handlers
+├── frontend/           # React frontend (TypeScript)
+├── templates/          # Jinja2 HTML templates
+├── static/             # CSS, JS bundles
+├── tests/              # Pytest test suite
+├── instance/           # SQLite database (created at runtime)
+└── run.py              # Application entry point
+```
+
+
+Contact & Support
+-----------------
+
+For issues and questions, please open an issue on GitHub.
+
 
    Optional flags:
      --debug          Enable debug mode
