@@ -10,7 +10,8 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "../static/js",
     "rootDir": "./src",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "ignoreDeprecations": "6.0"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
